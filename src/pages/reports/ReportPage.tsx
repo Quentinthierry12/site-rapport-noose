@@ -14,7 +14,7 @@ import { ReportPDF } from './ReportPDF';
 import { TeamSelector } from '@/components/teams/TeamSelector';
 import { RedactionEditor } from '@/components/redaction/RedactionEditor';
 import { VersionSelector } from '@/components/redaction/VersionSelector';
-import { type ReportVersion } from '@/features/redaction/redactionService';
+
 
 export function ReportPage() {
     const { id } = useParams();
@@ -41,7 +41,6 @@ export function ReportPage() {
 
     // Redaction State
     const [redactionDialogOpen, setRedactionDialogOpen] = useState(false);
-    const [selectedVersion, setSelectedVersion] = useState<ReportVersion | null>(null);
     const [redactedFields, setRedactedFields] = useState<string[]>([]);
 
     useEffect(() => {
@@ -334,7 +333,6 @@ export function ReportPage() {
                                 <VersionSelector
                                     reportId={id!}
                                     onVersionSelect={(version) => {
-                                        setSelectedVersion(version);
                                         setRedactedFields(version?.redacted_fields || []);
                                     }}
                                 />
