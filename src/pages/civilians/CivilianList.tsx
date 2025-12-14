@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { UserPlus, Search, AlertTriangle } from "lucide-react";
+import { UserPlus, Search } from "lucide-react";
 
 export function CivilianList() {
     const [civilians, setCivilians] = useState<Civilian[]>([]);
