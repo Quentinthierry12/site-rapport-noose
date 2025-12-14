@@ -1,0 +1,122 @@
+import { NavLink } from "react-router-dom";
+import {
+    LayoutDashboard,
+    FileText,
+    Users,
+    Briefcase,
+    Settings,
+    LogOut,
+    ChevronRight,
+    ChevronDown,
+    Folder
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { useAuthStore } from "@/features/auth/AuthStore";
+import { Button } from "@/components/ui/button";
+
+interface SidebarItemProps {
+    icon: React.ElementType;
+    label: string;
+    to?: string;
+    children?: React.ReactNode;
+}
+
+function SidebarItem({ icon: Icon, label, to, children }: SidebarItemProps) {
+    const [isOpen, setIsOpen] = useState(false);
+    const hasChildren = !!children;
+
+    const content = (
+        <div
+            className={cn(
+                "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer",
+                "hover:bg-primary/10 hover:text-primary",
+                to && "hover:bg-primary/10"
+            )}
+            onClick={() => hasChildren && setIsOpen(!isOpen)}
+        >
+            {hasChildren ? (
+                isOpen ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            ) : (
+                <span className="w-4" />
+            )}
+            <Icon className="h-4 w-4 text-primary" />
+            <span className="flex-1">{label}</span>
+        </div>
+    );
+
+    return (
+        <div>
+            {to ? (
+                <NavLink
+                    to={to}
+                    className={({ isActive }) => cn(
+                        "block rounded-md transition-colors",
+                        isActive ? "bg-primary/10 text-primary font-semibold" : "text-muted-foreground"
+                    )}
+                >
+                    {content}
+                </NavLink>
+            ) : (
+                content
+            )}
+            {hasChildren && isOpen && (
+                <div className="ml-6 mt-1 border-l pl-2 space-y-1">
+                    {children}
+                </div>
+            )}
+        </div>
+    );
+}
+
+export function Sidebar() {
+    const { user, logout } = useAuthStore();
+
+    return (
+        <aside className="w-64 border-r bg-background flex flex-col h-screen sticky top-0">
+            <div className="p-4 border-b bg-primary/5">
+                <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold">
+                        {user?.username.substring(0, 2).toUpperCase()}
+                    </div>
+                    <div className="overflow-hidden">
+                        <p className="text-sm font-medium truncate">{user?.username}</p>
+                        <p className="text-xs text-muted-foreground truncate">{user?.rank} - {user?.division}</p>
+                    </div>
+                </div>
+            </div>
+
+            <nav className="flex-1 overflow-y-auto p-4 space-y-1">
+                <SidebarItem icon={LayoutDashboard} label="Dashboard" to="/" />
+
+                <SidebarItem icon={Folder} label="Reports">
+                    <SidebarItem icon={FileText} label="All Reports" to="/reports" />
+                    <SidebarItem icon={FileText} label="My Reports" to="/reports?filter=mine" />
+                    <SidebarItem icon={FileText} label="Drafts" to="/reports?filter=drafts" />
+                </SidebarItem>
+
+                <SidebarItem icon={Folder} label="Arrests">
+                    <SidebarItem icon={Users} label="All Arrests" to="/arrests" />
+                    <SidebarItem icon={Users} label="My Arrests" to="/arrests?filter=mine" />
+                </SidebarItem>
+
+                <SidebarItem icon={Folder} label="Investigations">
+                    <SidebarItem icon={Briefcase} label="Active Cases" to="/investigations" />
+                    <SidebarItem icon={Briefcase} label="Archived" to="/investigations?filter=archived" />
+                </SidebarItem>
+
+                <div className="pt-4 mt-4 border-t">
+                    <SidebarItem icon={Users} label="Teams" to="/teams" />
+                    <SidebarItem icon={Settings} label="Administration" to="/admin" />
+                </div>
+            </nav>
+
+            <div className="p-4 border-t bg-muted/20">
+                <Button variant="outline" className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10" onClick={logout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                </Button>
+            </div>
+        </aside>
+    );
+}
