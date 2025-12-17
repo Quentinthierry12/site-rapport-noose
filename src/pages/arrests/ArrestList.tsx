@@ -35,9 +35,9 @@ export function ArrestList() {
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold tracking-tight">Arrests</h1>
+                <h1 className="text-3xl font-bold tracking-tight">Arrestations</h1>
                 <Button onClick={() => navigate("/arrests/new")}>
-                    <Plus className="mr-2 h-4 w-4" /> New Arrest Record
+                    <Plus className="mr-2 h-4 w-4" /> Nouvelle arrestation
                 </Button>
             </div>
 
@@ -45,7 +45,7 @@ export function ArrestList() {
                 <div className="relative flex-1 max-w-sm">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Search arrests..."
+                        placeholder="Rechercher des arrestations..."
                         className="pl-9"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -64,19 +64,19 @@ export function ArrestList() {
                             <TableHead>Suspect</TableHead>
                             <TableHead>Charges</TableHead>
                             <TableHead>Date</TableHead>
-                            <TableHead>Officer</TableHead>
-                            <TableHead>Status</TableHead>
+                            <TableHead>Officier</TableHead>
+                            <TableHead>Statut</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {loading ? (
                             <TableRow>
-                                <TableCell colSpan={7} className="text-center py-8">Loading arrests...</TableCell>
+                                <TableCell colSpan={7} className="text-center py-8">Chargement des arrestations...</TableCell>
                             </TableRow>
                         ) : filteredArrests.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={7} className="text-center py-8">No arrests found.</TableCell>
+                                <TableCell colSpan={7} className="text-center py-8">Aucune arrestation trouvée.</TableCell>
                             </TableRow>
                         ) : (
                             filteredArrests.map((arrest) => (
@@ -101,7 +101,7 @@ export function ArrestList() {
                                         </Badge>
                                     </TableCell>
                                     <TableCell className="text-right">
-                                        <Button variant="ghost" size="sm">View</Button>
+                                        <Button variant="ghost" size="sm">Voir</Button>
                                     </TableCell>
                                 </TableRow>
                             ))

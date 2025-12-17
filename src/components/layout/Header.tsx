@@ -6,7 +6,7 @@ export function Header() {
     return (
         <header className="h-16 border-b bg-primary text-primary-foreground flex items-center px-6 justify-between shadow-md">
             <div className="flex items-center gap-4">
-                <h1 className="text-lg font-bold tracking-wide uppercase">NOOSE <span className="text-xs font-normal opacity-80 normal-case ml-2">National Office of Security Enforcement</span></h1>
+                <h1 className="text-lg font-bold tracking-wide uppercase">NOOSE <span className="text-xs font-normal opacity-80 normal-case ml-2">Bureau National de l'Application de la Sécurité</span></h1>
             </div>
 
             <div className="flex-1 max-w-xl mx-8">

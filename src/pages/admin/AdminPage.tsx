@@ -93,7 +93,7 @@ export function AdminPage() {
     const handleCreateUser = async () => {
         try {
             if (!newUser.username || !newUser.password || !newUser.matricule) {
-                alert("Please fill in all required fields");
+                alert("Veuillez remplir tous les champs obligatoires");
                 return;
             }
 
@@ -114,7 +114,7 @@ export function AdminPage() {
             fetchUsers();
         } catch (error) {
             console.error("Error creating user:", error);
-            alert("Failed to create user.");
+            alert("Échec de la création de l'utilisateur.");
         }
     };
 
@@ -140,7 +140,7 @@ export function AdminPage() {
             fetchUsers();
         } catch (error) {
             console.error("Error updating user:", error);
-            alert("Failed to update user.");
+            alert("Échec de la mise à jour de l'utilisateur.");
         }
     };
 
@@ -156,8 +156,8 @@ export function AdminPage() {
     if (!currentUser?.permissions.includes('admin.access')) {
         return (
             <div className="p-8 text-center text-destructive">
-                <h1 className="text-2xl font-bold">Access Denied</h1>
-                <p>You do not have permission to view this page.</p>
+                <h1 className="text-2xl font-bold">Accès refusé</h1>
+                <p>Vous n'avez pas la permission de voir cette page.</p>
             </div>
         );
     }
@@ -169,24 +169,24 @@ export function AdminPage() {
                 <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
                     <DialogTrigger asChild>
                         <Button>
-                            <UserPlus className="mr-2 h-4 w-4" /> Create User
+                            <UserPlus className="mr-2 h-4 w-4" /> Créer un utilisateur
                         </Button>
                     </DialogTrigger>
                     <DialogContent>
                         <DialogHeader>
-                            <DialogTitle>Create New User</DialogTitle>
+                            <DialogTitle>Créer un nouvel utilisateur</DialogTitle>
                             <DialogDescription>
-                                Create a new user account with credentials and permissions.
+                                Créez un nouveau compte utilisateur avec des identifiants et des permissions.
                             </DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="username">Username</Label>
+                                    <Label htmlFor="username">Nom d'utilisateur</Label>
                                     <Input id="username" value={newUser.username} onChange={(e) => setNewUser({ ...newUser, username: e.target.value })} />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="password">Password</Label>
+                                    <Label htmlFor="password">Mot de passe</Label>
                                     <Input id="password" type="password" value={newUser.password} onChange={(e) => setNewUser({ ...newUser, password: e.target.value })} />
                                 </div>
                             </div>
@@ -196,7 +196,7 @@ export function AdminPage() {
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="rank">Rank</Label>
+                                    <Label htmlFor="rank">Grade</Label>
                                     <Input id="rank" value={newUser.rank} onChange={(e) => setNewUser({ ...newUser, rank: e.target.value })} />
                                 </div>
                                 <div className="space-y-2">
@@ -205,19 +205,19 @@ export function AdminPage() {
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="clearance">Clearance Level</Label>
+                                <Label htmlFor="clearance">Niveau d'habilitation</Label>
                                 <Select value={newUser.clearance} onValueChange={(val) => setNewUser({ ...newUser, clearance: val })}>
-                                    <SelectTrigger><SelectValue placeholder="Select clearance" /></SelectTrigger>
+                                    <SelectTrigger><SelectValue placeholder="Sélectionnez l'habilitation" /></SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="1">Level 1 (Confidential)</SelectItem>
-                                        <SelectItem value="2">Level 2 (Secret)</SelectItem>
-                                        <SelectItem value="3">Level 3 (Top Secret)</SelectItem>
-                                        <SelectItem value="4">Level 4 (Black Ops)</SelectItem>
-                                        <SelectItem value="5">Level 5 (Director)</SelectItem>
+                                        <SelectItem value="1">Niveau 1 (Confidentiel)</SelectItem>
+                                        <SelectItem value="2">Niveau 2 (Secret)</SelectItem>
+                                        <SelectItem value="3">Niveau 3 (Top Secret)</SelectItem>
+                                        <SelectItem value="4">Niveau 4 (Black Ops)</SelectItem>
+                                        <SelectItem value="5">Niveau 5 (Directeur)</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
-                            <Button onClick={handleCreateUser}>Create Account</Button>
+                            <Button onClick={handleCreateUser}>Créer le compte</Button>
                         </div>
                     </DialogContent>
                 </Dialog>
@@ -225,22 +225,22 @@ export function AdminPage() {
                 <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
                     <DialogContent className="max-w-2xl">
                         <DialogHeader>
-                            <DialogTitle>Edit User: {editingUser?.username}</DialogTitle>
+                            <DialogTitle>Modifier l'utilisateur : {editingUser?.username}</DialogTitle>
                             <DialogDescription>
-                                Modify user details, clearance level, and permissions.
+                                Modifiez les détails de l'utilisateur, le niveau d'habilitation et les permissions.
                             </DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-6 py-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label>Username</Label>
+                                    <Label>Nom d'utilisateur</Label>
                                     <Input
                                         value={editingUser?.username || ''}
                                         onChange={(e) => editingUser && setEditingUser({ ...editingUser, username: e.target.value })}
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label>Rank</Label>
+                                    <Label>Grade</Label>
                                     <Input
                                         value={editingUser?.rank || ''}
                                         onChange={(e) => editingUser && setEditingUser({ ...editingUser, rank: e.target.value })}
@@ -254,18 +254,18 @@ export function AdminPage() {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label>Clearance Level</Label>
+                                    <Label>Niveau d'habilitation</Label>
                                     <Select
                                         value={editingUser?.clearance.toString()}
                                         onValueChange={(val) => editingUser && setEditingUser({ ...editingUser, clearance: parseInt(val) })}
                                     >
                                         <SelectTrigger><SelectValue /></SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="1">Level 1 (Confidential)</SelectItem>
-                                            <SelectItem value="2">Level 2 (Secret)</SelectItem>
-                                            <SelectItem value="3">Level 3 (Top Secret)</SelectItem>
-                                            <SelectItem value="4">Level 4 (Black Ops)</SelectItem>
-                                            <SelectItem value="5">Level 5 (Director)</SelectItem>
+                                            <SelectItem value="1">Niveau 1 (Confidentiel)</SelectItem>
+                                            <SelectItem value="2">Niveau 2 (Secret)</SelectItem>
+                                            <SelectItem value="3">Niveau 3 (Top Secret)</SelectItem>
+                                            <SelectItem value="4">Niveau 4 (Black Ops)</SelectItem>
+                                            <SelectItem value="5">Niveau 5 (Directeur)</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -288,7 +288,7 @@ export function AdminPage() {
                                     ))}
                                 </div>
                             </div>
-                            <Button onClick={handleUpdateUser}>Save Changes</Button>
+                            <Button onClick={handleUpdateUser}>Enregistrer les modifications</Button>
                         </div>
                     </DialogContent>
                 </Dialog>
@@ -296,25 +296,25 @@ export function AdminPage() {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>User Management</CardTitle>
+                    <CardTitle>Gestion des utilisateurs</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Username</TableHead>
-                                <TableHead>Rank</TableHead>
+                                <TableHead>Nom d'utilisateur</TableHead>
+                                <TableHead>Grade</TableHead>
                                 <TableHead>Division</TableHead>
-                                <TableHead>Clearance</TableHead>
-                                <TableHead>Last Login</TableHead>
-                                <TableHead>Status</TableHead>
+                                <TableHead>Habilitation</TableHead>
+                                <TableHead>Dernière connexion</TableHead>
+                                <TableHead>Statut</TableHead>
                                 <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {loading ? (
                                 <TableRow>
-                                    <TableCell colSpan={7} className="text-center py-4">Loading users...</TableCell>
+                                    <TableCell colSpan={7} className="text-center py-4">Chargement des utilisateurs...</TableCell>
                                 </TableRow>
                             ) : (
                                 users.map((user) => (
@@ -324,14 +324,14 @@ export function AdminPage() {
                                         <TableCell>{user.division}</TableCell>
                                         <TableCell>
                                             <Badge variant={user.clearance >= 4 ? "destructive" : "secondary"}>
-                                                Level {user.clearance}
+                                                Niveau {user.clearance}
                                             </Badge>
                                         </TableCell>
                                         <TableCell>
-                                            {user.last_login ? new Date(user.last_login).toLocaleString() : 'Never'}
+                                            {user.last_login ? new Date(user.last_login).toLocaleString() : 'Jamais'}
                                         </TableCell>
                                         <TableCell>
-                                            <Badge variant="outline" className="text-green-600 border-green-600">Active</Badge>
+                                            <Badge variant="outline" className="text-green-600 border-green-600">Actif</Badge>
                                         </TableCell>
                                         <TableCell className="text-right">
                                             <Button variant="ghost" size="icon" onClick={() => { setEditingUser(user); setIsEditOpen(true); }}>

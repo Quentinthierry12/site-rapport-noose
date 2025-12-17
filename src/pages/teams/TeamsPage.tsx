@@ -77,7 +77,7 @@ export function TeamsPage() {
 
     const handleCreateTeam = async () => {
         if (!newTeamName || !newTeamDivision) {
-            alert("Please fill in team name and division");
+            alert("Veuillez remplir le nom de l'équipe et la division");
             return;
         }
 
@@ -96,7 +96,7 @@ export function TeamsPage() {
             loadTeams();
         } catch (error) {
             console.error("Failed to create team:", error);
-            alert("Failed to create team");
+            alert("Échec de la création de l'équipe");
         }
     };
 
@@ -111,7 +111,7 @@ export function TeamsPage() {
     };
 
     const handleDeleteTeam = async (teamId: string) => {
-        if (!confirm("Are you sure you want to delete this team?")) return;
+        if (!confirm("Êtes-vous sûr de vouloir supprimer cette équipe ?")) return;
 
         try {
             await teamsService.delete(teamId);
@@ -119,7 +119,7 @@ export function TeamsPage() {
             setDetailsDialogOpen(false);
         } catch (error) {
             console.error("Failed to delete team:", error);
-            alert("Failed to delete team");
+            alert("Échec de la suppression de l'équipe");
         }
     };
 
@@ -134,13 +134,13 @@ export function TeamsPage() {
             setSelectedUserId("");
         } catch (error) {
             console.error("Failed to add member:", error);
-            alert("Failed to add member");
+            alert("Échec de l'ajout du membre");
         }
     };
 
     const handleRemoveMember = async (userId: string) => {
         if (!selectedTeam) return;
-        if (!confirm("Remove this member from the team?")) return;
+        if (!confirm("Retirer ce membre de l'équipe ?")) return;
 
         try {
             await teamsService.removeMember(selectedTeam.id, userId);
@@ -148,46 +148,46 @@ export function TeamsPage() {
             setSelectedTeam(updatedTeam);
         } catch (error) {
             console.error("Failed to remove member:", error);
-            alert("Failed to remove member");
+            alert("Échec du retrait du membre");
         }
     };
 
     if (loading) {
-        return <div className="p-8 text-center">Loading teams...</div>;
+        return <div className="p-8 text-center">Chargement des équipes...</div>;
     }
 
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold tracking-tight">Teams & Divisions</h1>
+                <h1 className="text-3xl font-bold tracking-tight">Équipes & Divisions</h1>
                 <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
                     <DialogTrigger asChild>
                         <Button>
-                            <Plus className="mr-2 h-4 w-4" /> Create Team
+                            <Plus className="mr-2 h-4 w-4" /> Créer une équipe
                         </Button>
                     </DialogTrigger>
                     <DialogContent>
                         <DialogHeader>
-                            <DialogTitle>Create New Team</DialogTitle>
+                            <DialogTitle>Créer une nouvelle équipe</DialogTitle>
                             <DialogDescription>
-                                Create a team within your division to collaborate on cases.
+                                Créez une équipe au sein de votre division pour collaborer sur des dossiers.
                             </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4 py-4">
                             <div className="space-y-2">
-                                <Label htmlFor="teamName">Team Name</Label>
+                                <Label htmlFor="teamName">Nom de l'équipe</Label>
                                 <Input
                                     id="teamName"
                                     value={newTeamName}
                                     onChange={(e) => setNewTeamName(e.target.value)}
-                                    placeholder="e.g., Homicide Unit"
+                                    placeholder="ex: Unité Homicides"
                                 />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="division">Division</Label>
                                 <Select value={newTeamDivision} onValueChange={setNewTeamDivision}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select division" />
+                                        <SelectValue placeholder="Sélectionnez une division" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="Investigation">Investigation</SelectItem>
@@ -200,17 +200,17 @@ export function TeamsPage() {
                                 </Select>
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="description">Description (Optional)</Label>
+                                <Label htmlFor="description">Description (Optionnel)</Label>
                                 <Textarea
                                     id="description"
                                     value={newTeamDescription}
                                     onChange={(e) => setNewTeamDescription(e.target.value)}
-                                    placeholder="Brief description of the team's purpose..."
+                                    placeholder="Brève description de l'objectif de l'équipe..."
                                     className="h-20"
                                 />
                             </div>
                             <Button onClick={handleCreateTeam} className="w-full">
-                                Create Team
+                                Créer l'équipe
                             </Button>
                         </div>
                     </DialogContent>
@@ -223,7 +223,7 @@ export function TeamsPage() {
                     <Card className="col-span-full">
                         <CardContent className="p-8 text-center text-muted-foreground">
                             <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                            <p>No teams found. Create your first team to get started.</p>
+                            <p>Aucune équipe trouvée. Créez votre première équipe pour commencer.</p>
                         </CardContent>
                     </Card>
                 ) : (
@@ -241,7 +241,7 @@ export function TeamsPage() {
                             </CardHeader>
                             <CardContent>
                                 <p className="text-sm text-muted-foreground line-clamp-2">
-                                    {team.description || "No description"}
+                                    {team.description || "Aucune description"}
                                 </p>
                             </CardContent>
                         </Card>
@@ -258,29 +258,29 @@ export function TeamsPage() {
                             <TeamBadge team={selectedTeam!} />
                         </DialogTitle>
                         <DialogDescription>
-                            {selectedTeam?.description || "No description"}
+                            {selectedTeam?.description || "Aucune description"}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
-                            <h3 className="font-semibold">Members ({selectedTeam?.member_count || 0})</h3>
+                            <h3 className="font-semibold">Membres ({selectedTeam?.member_count || 0})</h3>
                             <Dialog open={addMemberDialogOpen} onOpenChange={setAddMemberDialogOpen}>
                                 <DialogTrigger asChild>
                                     <Button size="sm" variant="outline">
-                                        <UserPlus className="h-4 w-4 mr-2" /> Add Member
+                                        <UserPlus className="h-4 w-4 mr-2" /> Ajouter un membre
                                     </Button>
                                 </DialogTrigger>
                                 <DialogContent>
                                     <DialogHeader>
-                                        <DialogTitle>Add Team Member</DialogTitle>
+                                        <DialogTitle>Ajouter un membre à l'équipe</DialogTitle>
                                         <DialogDescription>
-                                            Select a user to add to this team.
+                                            Sélectionnez un utilisateur à ajouter à cette équipe.
                                         </DialogDescription>
                                     </DialogHeader>
                                     <div className="space-y-4 py-4">
                                         <Select value={selectedUserId} onValueChange={setSelectedUserId}>
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select user" />
+                                                <SelectValue placeholder="Sélectionnez un utilisateur" />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {availableUsers.map((u) => (
@@ -291,7 +291,7 @@ export function TeamsPage() {
                                             </SelectContent>
                                         </Select>
                                         <Button onClick={handleAddMember} className="w-full">
-                                            Add Member
+                                            Ajouter un membre
                                         </Button>
                                     </div>
                                 </DialogContent>
@@ -327,10 +327,10 @@ export function TeamsPage() {
                                 onClick={() => handleDeleteTeam(selectedTeam!.id)}
                                 className="flex-1"
                             >
-                                <Trash2 className="h-4 w-4 mr-2" /> Delete Team
+                                <Trash2 className="h-4 w-4 mr-2" /> Supprimer l'équipe
                             </Button>
                             <Button variant="outline" onClick={() => setDetailsDialogOpen(false)} className="flex-1">
-                                Close
+                                Fermer
                             </Button>
                         </div>
                     </div>

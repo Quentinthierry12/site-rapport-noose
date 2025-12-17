@@ -35,9 +35,9 @@ export function ReportList() {
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold tracking-tight">Reports</h1>
+                <h1 className="text-3xl font-bold tracking-tight">Rapports</h1>
                 <Button onClick={() => navigate("/reports/new")}>
-                    <Plus className="mr-2 h-4 w-4" /> New Report
+                    <Plus className="mr-2 h-4 w-4" /> Nouveau rapport
                 </Button>
             </div>
 
@@ -45,7 +45,7 @@ export function ReportList() {
                 <div className="relative flex-1 max-w-sm">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Search reports..."
+                        placeholder="Rechercher des rapports..."
                         className="pl-9"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -61,22 +61,22 @@ export function ReportList() {
                     <TableHeader>
                         <TableRow>
                             <TableHead>ID</TableHead>
-                            <TableHead>Title</TableHead>
-                            <TableHead>Author</TableHead>
+                            <TableHead>Titre</TableHead>
+                            <TableHead>Auteur</TableHead>
                             <TableHead>Date</TableHead>
                             <TableHead>Classification</TableHead>
-                            <TableHead>Status</TableHead>
+                            <TableHead>Statut</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {loading ? (
                             <TableRow>
-                                <TableCell colSpan={7} className="text-center py-8">Loading reports...</TableCell>
+                                <TableCell colSpan={7} className="text-center py-8">Chargement des rapports...</TableCell>
                             </TableRow>
                         ) : filteredReports.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={7} className="text-center py-8">No reports found.</TableCell>
+                                <TableCell colSpan={7} className="text-center py-8">Aucun rapport trouvé.</TableCell>
                             </TableRow>
                         ) : (
                             filteredReports.map((report) => (
@@ -105,7 +105,7 @@ export function ReportList() {
                                         </Badge>
                                     </TableCell>
                                     <TableCell className="text-right">
-                                        <Button variant="ghost" size="sm">View</Button>
+                                        <Button variant="ghost" size="sm">Voir</Button>
                                     </TableCell>
                                 </TableRow>
                             ))

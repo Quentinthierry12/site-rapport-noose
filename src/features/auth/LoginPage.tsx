@@ -24,10 +24,10 @@ export function LoginPage() {
                 login(user);
                 navigate('/');
             } else {
-                setError('Invalid credentials');
+                setError('Identifiants invalides');
             }
         } catch (err) {
-            setError('An error occurred during login');
+            setError('Une erreur s\'est produite lors de la connexion');
         }
     };
 
@@ -35,27 +35,27 @@ export function LoginPage() {
         <div className="flex items-center justify-center min-h-screen bg-background">
             <Card className="w-[350px]">
                 <CardHeader>
-                    <CardTitle>NICMS Login</CardTitle>
-                    <CardDescription>Enter your credentials to access the system.</CardDescription>
+                    <CardTitle>Connexion NICMS</CardTitle>
+                    <CardDescription>Entrez vos identifiants pour accéder au système.</CardDescription>
                 </CardHeader>
                 <form onSubmit={handleLogin}>
                     <CardContent>
                         <div className="grid w-full items-center gap-4">
                             <div className="flex flex-col space-y-1.5">
-                                <Label htmlFor="username">Username</Label>
+                                <Label htmlFor="username">Nom d'utilisateur</Label>
                                 <Input
                                     id="username"
-                                    placeholder="Username"
+                                    placeholder="Nom d'utilisateur"
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
                                 />
                             </div>
                             <div className="flex flex-col space-y-1.5">
-                                <Label htmlFor="password">Password</Label>
+                                <Label htmlFor="password">Mot de passe</Label>
                                 <Input
                                     id="password"
                                     type="password"
-                                    placeholder="Password"
+                                    placeholder="Mot de passe"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                 />
@@ -64,7 +64,7 @@ export function LoginPage() {
                         </div>
                     </CardContent>
                     <CardFooter className="flex justify-between">
-                        <Button type="submit" className="w-full">Login</Button>
+                        <Button type="submit" className="w-full">Se connecter</Button>
                     </CardFooter>
                 </form>
             </Card>

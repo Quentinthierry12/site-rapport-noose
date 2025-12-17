@@ -35,9 +35,9 @@ export function InvestigationList() {
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold tracking-tight">Investigations</h1>
+                <h1 className="text-3xl font-bold tracking-tight">Enquêtes</h1>
                 <Button onClick={() => navigate("/investigations/new")}>
-                    <Plus className="mr-2 h-4 w-4" /> New Case
+                    <Plus className="mr-2 h-4 w-4" /> Nouveau dossier
                 </Button>
             </div>
 
@@ -45,7 +45,7 @@ export function InvestigationList() {
                 <div className="relative flex-1 max-w-sm">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Search cases..."
+                        placeholder="Rechercher des dossiers..."
                         className="pl-9"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -60,22 +60,22 @@ export function InvestigationList() {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Case Number</TableHead>
-                            <TableHead>Title</TableHead>
-                            <TableHead>Lead Agent</TableHead>
+                            <TableHead>Numéro de dossier</TableHead>
+                            <TableHead>Titre</TableHead>
+                            <TableHead>Agent principal</TableHead>
                             <TableHead>Classification</TableHead>
-                            <TableHead>Status</TableHead>
+                            <TableHead>Statut</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {loading ? (
                             <TableRow>
-                                <TableCell colSpan={6} className="text-center py-8">Loading investigations...</TableCell>
+                                <TableCell colSpan={6} className="text-center py-8">Chargement des enquêtes...</TableCell>
                             </TableRow>
                         ) : filteredInvestigations.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={6} className="text-center py-8">No investigations found.</TableCell>
+                                <TableCell colSpan={6} className="text-center py-8">Aucune enquête trouvée.</TableCell>
                             </TableRow>
                         ) : (
                             filteredInvestigations.map((inv) => (
@@ -92,7 +92,7 @@ export function InvestigationList() {
                                         </Badge>
                                     </TableCell>
                                     <TableCell className="text-right">
-                                        <Button variant="ghost" size="sm">View</Button>
+                                        <Button variant="ghost" size="sm">Voir</Button>
                                     </TableCell>
                                 </TableRow>
                             ))

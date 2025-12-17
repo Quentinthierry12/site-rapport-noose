@@ -45,12 +45,12 @@ export function CivilianList() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Civilian Database</h1>
-                    <p className="text-muted-foreground">Manage civilian records and profiles.</p>
+                    <h1 className="text-3xl font-bold tracking-tight">Base de données civile</h1>
+                    <p className="text-muted-foreground">Gérer les dossiers et profils civils.</p>
                 </div>
                 <Button asChild>
                     <Link to="/civilians/new">
-                        <UserPlus className="mr-2 h-4 w-4" /> New Civilian
+                        <UserPlus className="mr-2 h-4 w-4" /> Nouveau civil
                     </Link>
                 </Button>
             </div>
@@ -59,7 +59,7 @@ export function CivilianList() {
                 <div className="relative flex-1 max-w-sm">
                     <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Search by name..."
+                        placeholder="Rechercher par nom..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="pl-8"
@@ -69,27 +69,27 @@ export function CivilianList() {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Registered Civilians</CardTitle>
+                    <CardTitle>Civils enregistrés</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Name</TableHead>
-                                <TableHead>Date of Birth</TableHead>
-                                <TableHead>Gender</TableHead>
-                                <TableHead>Flags</TableHead>
+                                <TableHead>Nom</TableHead>
+                                <TableHead>Date de naissance</TableHead>
+                                <TableHead>Genre</TableHead>
+                                <TableHead>Signalements</TableHead>
                                 <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {loading ? (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="text-center py-4">Loading...</TableCell>
+                                    <TableCell colSpan={5} className="text-center py-4">Chargement...</TableCell>
                                 </TableRow>
                             ) : civilians.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="text-center py-4">No civilians found.</TableCell>
+                                    <TableCell colSpan={5} className="text-center py-4">Aucun civil trouvé.</TableCell>
                                 </TableRow>
                             ) : (
                                 civilians.map((civilian) => (
@@ -99,8 +99,8 @@ export function CivilianList() {
                                                 {civilian.full_name}
                                             </Link>
                                         </TableCell>
-                                        <TableCell>{civilian.dob || 'Unknown'}</TableCell>
-                                        <TableCell>{civilian.gender || 'Unknown'}</TableCell>
+                                        <TableCell>{civilian.dob || 'Inconnu'}</TableCell>
+                                        <TableCell>{civilian.gender || 'Inconnu'}</TableCell>
                                         <TableCell>
                                             <div className="flex gap-1">
                                                 {civilian.flags && civilian.flags.map((flag) => (
@@ -112,7 +112,7 @@ export function CivilianList() {
                                         </TableCell>
                                         <TableCell className="text-right">
                                             <Button variant="ghost" size="sm" asChild>
-                                                <Link to={`/civilians/${civilian.id}`}>View Dossier</Link>
+                                                <Link to={`/civilians/${civilian.id}`}>Voir le dossier</Link>
                                             </Button>
                                         </TableCell>
                                     </TableRow>

@@ -45,11 +45,11 @@ export function WeaponList() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Weapon Registry</h1>
-                    <p className="text-muted-foreground">Manage registered weapons and status.</p>
+                    <h1 className="text-3xl font-bold tracking-tight">Registre des armes</h1>
+                    <p className="text-muted-foreground">Gérer les armes enregistrées et leur statut.</p>
                 </div>
                 <Button>
-                    <Plus className="mr-2 h-4 w-4" /> Register Weapon
+                    <Plus className="mr-2 h-4 w-4" /> Enregistrer une arme
                 </Button>
             </div>
 
@@ -57,7 +57,7 @@ export function WeaponList() {
                 <div className="relative flex-1 max-w-sm">
                     <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Search by serial number..."
+                        placeholder="Rechercher par numéro de série..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="pl-8"
@@ -67,28 +67,28 @@ export function WeaponList() {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Registered Weapons</CardTitle>
+                    <CardTitle>Armes enregistrées</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Serial Number</TableHead>
-                                <TableHead>Model</TableHead>
+                                <TableHead>Numéro de série</TableHead>
+                                <TableHead>Modèle</TableHead>
                                 <TableHead>Type</TableHead>
-                                <TableHead>Owner</TableHead>
-                                <TableHead>Status</TableHead>
+                                <TableHead>Propriétaire</TableHead>
+                                <TableHead>Statut</TableHead>
                                 <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {loading ? (
                                 <TableRow>
-                                    <TableCell colSpan={6} className="text-center py-4">Loading...</TableCell>
+                                    <TableCell colSpan={6} className="text-center py-4">Chargement...</TableCell>
                                 </TableRow>
                             ) : weapons.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={6} className="text-center py-4">No weapons found.</TableCell>
+                                    <TableCell colSpan={6} className="text-center py-4">Aucune arme trouvée.</TableCell>
                                 </TableRow>
                             ) : (
                                 weapons.map((weapon) => (
@@ -102,7 +102,7 @@ export function WeaponList() {
                                                     {weapon.owner.full_name}
                                                 </Link>
                                             ) : (
-                                                <span className="text-muted-foreground">Unknown</span>
+                                                <span className="text-muted-foreground">Inconnu</span>
                                             )}
                                         </TableCell>
                                         <TableCell>
@@ -112,7 +112,7 @@ export function WeaponList() {
                                         </TableCell>
                                         <TableCell className="text-right">
                                             <Button variant="ghost" size="sm">
-                                                Edit
+                                                Modifier
                                             </Button>
                                         </TableCell>
                                     </TableRow>

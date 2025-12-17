@@ -87,26 +87,26 @@ export function Sidebar() {
             </div>
 
             <nav className="flex-1 overflow-y-auto p-4 space-y-1">
-                <SidebarItem icon={LayoutDashboard} label="Dashboard" to="/" />
+                <SidebarItem icon={LayoutDashboard} label="Tableau de bord" to="/" />
 
-                <SidebarItem icon={Folder} label="Reports">
-                    <SidebarItem icon={FileText} label="All Reports" to="/reports" />
-                    <SidebarItem icon={FileText} label="My Reports" to="/reports?filter=mine" />
-                    <SidebarItem icon={FileText} label="Drafts" to="/reports?filter=drafts" />
+                <SidebarItem icon={Folder} label="Rapports">
+                    <SidebarItem icon={FileText} label="Tous les rapports" to="/reports" />
+                    <SidebarItem icon={FileText} label="Mes rapports" to="/reports?filter=mine" />
+                    <SidebarItem icon={FileText} label="Brouillons" to="/reports?filter=drafts" />
                 </SidebarItem>
 
-                <SidebarItem icon={Folder} label="Arrests">
-                    <SidebarItem icon={Users} label="All Arrests" to="/arrests" />
-                    <SidebarItem icon={Users} label="My Arrests" to="/arrests?filter=mine" />
+                <SidebarItem icon={Folder} label="Arrestations">
+                    <SidebarItem icon={Users} label="Toutes les arrestations" to="/arrests" />
+                    <SidebarItem icon={Users} label="Mes arrestations" to="/arrests?filter=mine" />
                 </SidebarItem>
 
-                <SidebarItem icon={Folder} label="Investigations">
-                    <SidebarItem icon={Briefcase} label="Active Cases" to="/investigations" />
-                    <SidebarItem icon={Briefcase} label="Archived" to="/investigations?filter=archived" />
+                <SidebarItem icon={Folder} label="Enquêtes">
+                    <SidebarItem icon={Briefcase} label="Dossiers actifs" to="/investigations" />
+                    <SidebarItem icon={Briefcase} label="Archivés" to="/investigations?filter=archived" />
                 </SidebarItem>
 
                 <div className="pt-4 mt-4 border-t">
-                    <SidebarItem icon={Users} label="Teams" to="/teams" />
+                    <SidebarItem icon={Users} label="Équipes" to="/teams" />
                     <SidebarItem icon={Settings} label="Administration" to="/admin" />
                 </div>
             </nav>
@@ -114,7 +114,7 @@ export function Sidebar() {
             <div className="p-4 border-t bg-muted/20">
                 <Button variant="outline" className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10" onClick={logout}>
                     <LogOut className="mr-2 h-4 w-4" />
-                    Logout
+                    Déconnexion
                 </Button>
             </div>
         </aside>
