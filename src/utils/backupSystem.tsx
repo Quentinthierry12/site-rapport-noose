@@ -9,6 +9,7 @@ import type { Report } from "@/features/reports/reportsService";
 import type { Civilian } from "@/features/civilians/civiliansService";
 import type { Arrest } from "@/features/arrests/arrestsService";
 import type { Investigation, InvestigationLink } from "@/features/investigations/investigationsService";
+import { type User } from "@/features/auth/AuthStore";
 
 // Import components for rendering
 import { SuspectPDF } from "@/pages/reports/SuspectPDF";
@@ -16,7 +17,7 @@ import { ReportPDF } from "@/pages/reports/ReportPDF";
 import { ArrestPDF } from "@/pages/reports/ArrestPDF";
 
 // Helper to convert React Element to PDF Blob
-const renderAndCapture = async (element: React.ReactElement, filename: string): Promise<Blob> => {
+const renderAndCapture = async (element: React.ReactElement): Promise<Blob> => {
     // 1. Render component to static HTML string
     // Note: We wrap it in a div with fixed width/style to ensure print layout matches 
     // what html2canvas expects for a "page"
@@ -86,14 +87,12 @@ export const generateBackup = async (onStatusUpdate: (status: string) => void) =
             { data: civilians },
             { data: arrests },
             { data: investigations },
-            { data: users },
             { data: investigationLinks }
         ] = await Promise.all([
-            supabase.from('reports').select('*, author:noose_user(username, rank), suspect:noose_civilians(full_name, dob, height, weight, pob, address)'),
+            supabase.from('reports').select('*, author:noose_user(username, rank, matricule), suspect:noose_civilians(full_name, dob, height, weight, pob, address)'),
             supabase.from('noose_civilians').select('*'),
             supabase.from('arrests').select('*, officer:noose_user(username, rank)'),
             supabase.from('investigations').select('*'),
-            supabase.from('noose_user').select('id, username, rank, division'),
             supabase.from('investigation_links').select('*')
         ]);
 
@@ -115,11 +114,10 @@ export const generateBackup = async (onStatusUpdate: (status: string) => void) =
             const blob = await renderAndCapture(
                 <ReportPDF
                     report={report}
-                    author={report.author}
+                    author={report.author as User}
                     suspect={report.suspect as unknown as Civilian}
                     preview={true}
-                />,
-                `Report-${report.id}.pdf`
+                />
             );
 
             reportsFolder?.file(`Report-${report.id.slice(0, 8)}.pdf`, blob);
@@ -146,8 +144,7 @@ export const generateBackup = async (onStatusUpdate: (status: string) => void) =
                     includeInvestigations={true}
                     includeVehicles={true}
                     preview={true}
-                />,
-                `Civilian-${civ.full_name}.pdf`
+                />
             );
 
             civiliansFolder?.file(`${civ.full_name.replace(/[^a-z0-9]/gi, '_')}.pdf`, blob);
@@ -169,8 +166,7 @@ export const generateBackup = async (onStatusUpdate: (status: string) => void) =
                     arrest={arrest}
                     suspect={relatedCivilian}
                     preview={true}
-                />,
-                `Arrest-${arrest.id}.pdf`
+                />
             );
 
             arrestsFolder?.file(`Arrest-${arrest.id.slice(0, 8)}.pdf`, blob);
@@ -192,8 +188,7 @@ export const generateBackup = async (onStatusUpdate: (status: string) => void) =
                     <h2 style={{ fontSize: '18px', marginBottom: '20px' }}>{inv.title}</h2>
                     <p style={{ marginBottom: '20px', whiteSpace: 'pre-wrap' }}>{inv.description}</p>
                     <p><strong>Status:</strong> {inv.status}</p>
-                </div>,
-                "CASE_FILE.pdf"
+                </div>
             );
 
             caseFolder?.file("CASE_FILE.pdf", blob);
