@@ -30,11 +30,13 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuthStore } from "@/features/auth/AuthStore";
-import { UserPlus, Edit } from "lucide-react";
+import { UserPlus, Edit, Key, FileDown } from "lucide-react";
+import { AccountAssignmentPDF } from "@/components/pdf/AccountAssignmentPDF";
 
 interface User {
     id: string;
     username: string;
+    matricule: string;
     rank: string;
     division: string;
     clearance: number;
@@ -57,6 +59,22 @@ export function AdminPage() {
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [editingUser, setEditingUser] = useState<User | null>(null);
+    const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(false);
+    const [resetPasswordUser, setResetPasswordUser] = useState<User | null>(null);
+    const [newPassword, setNewPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+
+    // PDF Generation State
+    const [showPDFSuccess, setShowPDFSuccess] = useState(false);
+    const [pdfCredentials, setPdfCredentials] = useState<{
+        username: string;
+        password: string;
+        matricule: string;
+        rank: string;
+        division: string;
+        clearance: number;
+        isPasswordReset: boolean;
+    } | null>(null);
 
     // New User Form State
     const [newUser, setNewUser] = useState({
@@ -72,7 +90,7 @@ export function AdminPage() {
         try {
             const { data, error } = await supabase
                 .from('noose_user')
-                .select('id, username, rank, division, clearance, last_login, permissions')
+                .select('id, username, matricule, rank, division, clearance, last_login, permissions')
                 .order('username');
 
             if (error) throw error;
@@ -109,8 +127,20 @@ export function AdminPage() {
 
             if (error) throw error;
 
+            // Store credentials for PDF generation
+            setPdfCredentials({
+                username: newUser.username,
+                password: newUser.password,
+                matricule: newUser.matricule,
+                rank: newUser.rank || "Agent",
+                division: newUser.division || "General",
+                clearance: parseInt(newUser.clearance),
+                isPasswordReset: false
+            });
+
             setIsCreateOpen(false);
             setNewUser({ username: "", password: "", matricule: "", rank: "", division: "", clearance: "1" });
+            setShowPDFSuccess(true);
             fetchUsers();
         } catch (error) {
             console.error("Error creating user:", error);
@@ -142,6 +172,54 @@ export function AdminPage() {
             console.error("Error updating user:", error);
             alert("Échec de la mise à jour de l'utilisateur.");
         }
+    };
+
+    const handleResetPassword = async () => {
+        if (!resetPasswordUser) return;
+
+        if (newPassword !== confirmPassword) {
+            alert("Les mots de passe ne correspondent pas.");
+            return;
+        }
+
+        if (newPassword.length < 4) {
+            alert("Le mot de passe doit contenir au moins 4 caractères.");
+            return;
+        }
+
+        try {
+            const { error } = await supabase
+                .from('noose_user')
+                .update({ password: newPassword })
+                .eq('id', resetPasswordUser.id);
+
+            if (error) throw error;
+
+            // Store credentials for PDF generation
+            setPdfCredentials({
+                username: resetPasswordUser.username,
+                password: newPassword,
+                matricule: resetPasswordUser.matricule || "N/A",
+                rank: resetPasswordUser.rank,
+                division: resetPasswordUser.division,
+                clearance: resetPasswordUser.clearance,
+                isPasswordReset: true
+            });
+
+            setIsResetPasswordOpen(false);
+            setResetPasswordUser(null);
+            setNewPassword("");
+            setConfirmPassword("");
+            setShowPDFSuccess(true);
+            fetchUsers();
+        } catch (error) {
+            console.error("Error resetting password:", error);
+            alert("Échec de la réinitialisation du mot de passe.");
+        }
+    };
+
+    const handleDownloadPDF = () => {
+        window.print();
     };
 
     const togglePermission = (permission: string) => {
@@ -334,9 +412,24 @@ export function AdminPage() {
                                             <Badge variant="outline" className="text-green-600 border-green-600">Actif</Badge>
                                         </TableCell>
                                         <TableCell className="text-right">
-                                            <Button variant="ghost" size="icon" onClick={() => { setEditingUser(user); setIsEditOpen(true); }}>
-                                                <Edit className="h-4 w-4" />
-                                            </Button>
+                                            <div className="flex items-center justify-end gap-2">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => { setEditingUser(user); setIsEditOpen(true); }}
+                                                    title="Modifier l'utilisateur"
+                                                >
+                                                    <Edit className="h-4 w-4" />
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => { setResetPasswordUser(user); setIsResetPasswordOpen(true); }}
+                                                    title="Réinitialiser le mot de passe"
+                                                >
+                                                    <Key className="h-4 w-4" />
+                                                </Button>
+                                            </div>
                                         </TableCell>
                                     </TableRow>
                                 ))
@@ -345,6 +438,78 @@ export function AdminPage() {
                     </Table>
                 </CardContent>
             </Card>
+
+            {/* Password Reset Dialog */}
+            <Dialog open={isResetPasswordOpen} onOpenChange={setIsResetPasswordOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Réinitialiser le mot de passe</DialogTitle>
+                        <DialogDescription>
+                            Définir un nouveau mot de passe pour {resetPasswordUser?.username}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="new-password">Nouveau mot de passe</Label>
+                            <Input
+                                id="new-password"
+                                type="password"
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                placeholder="Entrez le nouveau mot de passe"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="confirm-password">Confirmer le mot de passe</Label>
+                            <Input
+                                id="confirm-password"
+                                type="password"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                placeholder="Confirmez le mot de passe"
+                            />
+                        </div>
+                        <Button onClick={handleResetPassword}>Réinitialiser le mot de passe</Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* PDF Success Dialog */}
+            <Dialog open={showPDFSuccess} onOpenChange={setShowPDFSuccess}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>
+                            {pdfCredentials?.isPasswordReset ? 'Mot de passe réinitialisé' : 'Utilisateur créé avec succès'}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {pdfCredentials?.isPasswordReset
+                                ? 'Le mot de passe a été réinitialisé. Téléchargez le PDF contenant les nouvelles informations de connexion.'
+                                : 'Le compte utilisateur a été créé. Téléchargez le PDF contenant les informations de connexion et le guide d\'utilisation.'}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4">
+                        <Button onClick={handleDownloadPDF} className="w-full">
+                            <FileDown className="mr-2 h-4 w-4" />
+                            Télécharger le PDF d'assignation
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Printed PDF Component (Hidden until print) */}
+            {pdfCredentials && (
+                <div className="print-only hidden print:block fixed inset-0 bg-white z-[9999]">
+                    <AccountAssignmentPDF
+                        username={pdfCredentials.username}
+                        password={pdfCredentials.password}
+                        matricule={pdfCredentials.matricule}
+                        rank={pdfCredentials.rank}
+                        division={pdfCredentials.division}
+                        clearance={pdfCredentials.clearance}
+                        isPasswordReset={pdfCredentials.isPasswordReset}
+                    />
+                </div>
+            )}
         </div>
     );
 }

@@ -70,7 +70,7 @@ export const ReportPDF = forwardRef<HTMLDivElement, ReportPDFProps>(({ report, a
                         </tr>
                         <tr>
                             <td className="border border-black p-2 font-bold bg-gray-100">Matricule</td>
-                            <td className="border border-black p-2">{author?.id.slice(0, 6).toUpperCase() || 'N/A'}</td>
+                            <td className="border border-black p-2">{author?.matricule || 'N/A'}</td>
                         </tr>
                     </tbody>
                 </table>
