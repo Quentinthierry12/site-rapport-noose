@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { civiliansService, type Civilian } from "@/features/civilians/civiliansService";
 import { arrestsService, type Arrest } from "@/features/arrests/arrestsService";
@@ -10,7 +10,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, User, Shield, Car, Save, Edit2, X } from "lucide-react";
+import { ArrowLeft, User, Shield, Car, Save, Edit2, X, Printer } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { SuspectPDF } from "@/pages/reports/SuspectPDF";
 
 export function CivilianProfile() {
     const { id } = useParams();
@@ -23,6 +26,23 @@ export function CivilianProfile() {
     const [weapons, setWeapons] = useState<Weapon[]>([]);
     const [loading, setLoading] = useState(!isNew);
     const [isEditing, setIsEditing] = useState(isNew);
+
+    // Export State
+    const [showExportDialog, setShowExportDialog] = useState(false);
+    const [exportOptions, setExportOptions] = useState({
+        arrests: true,
+        investigations: true,
+        vehicles: true
+    });
+    const componentRef = useRef<HTMLDivElement>(null);
+
+    const handlePrint = () => {
+        setShowExportDialog(false);
+        // Small delay to allow dialog to close and state to settle before printing
+        setTimeout(() => {
+            window.print();
+        }, 300);
+    };
 
     // Form State
     const [formData, setFormData] = useState<Partial<Civilian>>({});
@@ -110,14 +130,19 @@ export function CivilianProfile() {
                             </Button>
                         </>
                     ) : (
-                        <Button onClick={() => setIsEditing(true)}>
-                            <Edit2 className="mr-2 h-4 w-4" /> Edit Dossier
-                        </Button>
+                        <>
+                            <Button variant="outline" onClick={() => setShowExportDialog(true)}>
+                                <Printer className="mr-2 h-4 w-4" /> Export PDF
+                            </Button>
+                            <Button onClick={() => setIsEditing(true)}>
+                                <Edit2 className="mr-2 h-4 w-4" /> Edit Dossier
+                            </Button>
+                        </>
                     )}
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="print:hidden grid grid-cols-1 md:grid-cols-4 gap-6">
                 {/* Sidebar / Mugshot Area */}
                 <Card className="md:col-span-1">
                     <CardContent className="pt-6 flex flex-col items-center text-center space-y-4">
@@ -342,6 +367,87 @@ export function CivilianProfile() {
                         </TabsContent>
                     </Tabs>
                 </div>
+            </div>
+
+            {/* Export Dialog */}
+            <Dialog open={showExportDialog} onOpenChange={setShowExportDialog}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Export Options</DialogTitle>
+                        <DialogDescription>
+                            Select the information you want to include in the PDF dossier.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="flex items-center space-x-2">
+                            <Checkbox
+                                id="inc-arrests"
+                                checked={exportOptions.arrests}
+                                onCheckedChange={(c) => setExportOptions(prev => ({ ...prev, arrests: !!c }))}
+                            />
+                            <Label htmlFor="inc-arrests">Include Arrest History</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <Checkbox
+                                id="inc-inv"
+                                checked={exportOptions.investigations}
+                                onCheckedChange={(c) => setExportOptions(prev => ({ ...prev, investigations: !!c }))}
+                            />
+                            <Label htmlFor="inc-inv">Include Investigations</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <Checkbox
+                                id="inc-veh"
+                                checked={exportOptions.vehicles}
+                                onCheckedChange={(c) => setExportOptions(prev => ({ ...prev, vehicles: !!c }))}
+                            />
+                            <Label htmlFor="inc-veh">Include Vehicles & Weapons</Label>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setShowExportDialog(false)}>Cancel</Button>
+                        <Button onClick={handlePrint}>Generate PDF</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Hidden Printable Component with Global Styles */}
+            <style>
+                {`
+                    @media print {
+                        body * {
+                            visibility: hidden;
+                        }
+                        #suspect-pdf-root, #suspect-pdf-root * {
+                            visibility: visible;
+                        }
+                        #suspect-pdf-root {
+                            position: absolute;
+                            left: 0;
+                            top: 0;
+                            width: 100%;
+                            height: auto;
+                            z-index: 9999;
+                            background: white;
+                        }
+                        /* Hide the main scrollbar to prevent extra pages */
+                        html, body {
+                            height: 100vh;
+                            overflow: hidden;
+                            background: white;
+                        }
+                    }
+                `}
+            </style>
+            <div id="suspect-pdf-root" className="hidden print:block fixed top-0 left-0 w-full min-h-screen bg-white">
+                <SuspectPDF
+                    ref={componentRef}
+                    suspect={civilian as Civilian}
+                    arrests={arrests}
+                    includeArrests={exportOptions.arrests}
+                    includeInvestigations={exportOptions.investigations}
+                    includeVehicles={exportOptions.vehicles}
+                />
             </div>
         </div>
     );

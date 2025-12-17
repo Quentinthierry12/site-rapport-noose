@@ -8,9 +8,10 @@ interface ReportPDFProps {
     author?: User | null;
     suspect?: Civilian | null;
     redactedFields?: string[]; // Fields to redact
+    preview?: boolean;
 }
 
-export const ReportPDF = forwardRef<HTMLDivElement, ReportPDFProps>(({ report, author, suspect, redactedFields = [] }, ref) => {
+export const ReportPDF = forwardRef<HTMLDivElement, ReportPDFProps>(({ report, author, suspect, redactedFields = [], preview = false }, ref) => {
     // Helper function to check if a field should be redacted
     const isRedacted = (fieldName: string) => redactedFields.includes(fieldName);
 
@@ -23,9 +24,9 @@ export const ReportPDF = forwardRef<HTMLDivElement, ReportPDFProps>(({ report, a
     };
 
     return (
-        <div ref={ref} className="hidden print:block p-8 max-w-[210mm] mx-auto bg-white text-black font-serif">
+        <div ref={ref} className={`${preview ? '' : 'hidden'} print:block p-8 max-w-[210mm] mx-auto font-serif`} style={{ backgroundColor: '#ffffff', color: '#000000' }}>
             {/* Header */}
-            <div className="text-center mb-8 border-b-2 border-black pb-4">
+            <div className="text-center mb-8 border-b-2 pb-4" style={{ borderColor: '#000000' }}>
                 <div className="w-32 h-32 mx-auto mb-4 flex items-center justify-center">
                     <img src="/noose-seal.png" alt="NOOSE Seal" className="w-full h-full object-contain" />
                 </div>
@@ -50,27 +51,27 @@ export const ReportPDF = forwardRef<HTMLDivElement, ReportPDFProps>(({ report, a
             </div>
 
             {/* Object */}
-            <div className="mb-6 border border-black flex">
-                <div className="w-32 border-r border-black p-2 font-bold bg-gray-100">OBJET</div>
+            <div className="mb-6 border flex" style={{ borderColor: '#000000' }}>
+                <div className="w-32 border-r p-2 font-bold" style={{ borderColor: '#000000', backgroundColor: '#f3f4f6' }}>OBJET</div>
                 <div className="p-2 flex-1 font-bold uppercase">{report.title}</div>
             </div>
 
             {/* Officer Info Table */}
             <div className="mb-6">
-                <h3 className="font-bold uppercase mb-2 border-b border-black inline-block">INFORMATIONS OFFICIERS</h3>
-                <table className="w-full border-collapse border border-black text-sm">
+                <h3 className="font-bold uppercase mb-2 border-b" style={{ borderColor: '#000000', display: 'block' }}>INFORMATIONS OFFICIERS</h3>
+                <table className="w-full border-collapse border text-sm" style={{ borderColor: '#000000' }}>
                     <tbody>
                         <tr>
-                            <td className="border border-black p-2 w-1/3 font-bold bg-gray-100">Nom</td>
-                            <td className="border border-black p-2">{author?.username?.split(' ').pop() || 'UNKNOWN'}</td>
+                            <td className="border p-2 w-1/3 font-bold" style={{ borderColor: '#000000', backgroundColor: '#f3f4f6' }}>Nom</td>
+                            <td className="border p-2" style={{ borderColor: '#000000' }}>{author?.username?.split(' ').pop() || 'UNKNOWN'}</td>
                         </tr>
                         <tr>
-                            <td className="border border-black p-2 font-bold bg-gray-100">Prénom</td>
-                            <td className="border border-black p-2">{author?.username?.split(' ')[0] || 'UNKNOWN'}</td>
+                            <td className="border p-2 font-bold" style={{ borderColor: '#000000', backgroundColor: '#f3f4f6' }}>Prénom</td>
+                            <td className="border p-2" style={{ borderColor: '#000000' }}>{author?.username?.split(' ')[0] || 'UNKNOWN'}</td>
                         </tr>
                         <tr>
-                            <td className="border border-black p-2 font-bold bg-gray-100">Matricule</td>
-                            <td className="border border-black p-2">{author?.matricule || 'N/A'}</td>
+                            <td className="border p-2 font-bold" style={{ borderColor: '#000000', backgroundColor: '#f3f4f6' }}>Matricule</td>
+                            <td className="border p-2" style={{ borderColor: '#000000' }}>{author?.matricule || 'N/A'}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -78,24 +79,25 @@ export const ReportPDF = forwardRef<HTMLDivElement, ReportPDFProps>(({ report, a
 
             {/* Suspect Info Table */}
             <div className="mb-6">
-                <h3 className="font-bold uppercase mb-2 border-b border-black inline-block">INFORMATIONS SUSPECT</h3>
-                <table className="w-full border-collapse border border-black text-sm">
+                <h3 className="font-bold uppercase mb-1">INFORMATIONS SUSPECT</h3>
+                <div className="border-b mb-2" style={{ borderColor: '#000000' }}></div>
+                <table className="w-full border-collapse border text-sm" style={{ borderColor: '#000000' }}>
                     <tbody>
                         <tr>
-                            <td className="border border-black p-2 w-1/3 font-bold bg-gray-100">Nom</td>
-                            <td className="border border-black p-2">
+                            <td className="border p-2 w-1/3 font-bold" style={{ borderColor: '#000000', backgroundColor: '#f3f4f6' }}>Nom</td>
+                            <td className="border p-2" style={{ borderColor: '#000000' }}>
                                 {getValue(suspect?.full_name?.split(' ').pop(), 'suspect_name')}
                             </td>
                         </tr>
                         <tr>
-                            <td className="border border-black p-2 font-bold bg-gray-100">Prénom</td>
-                            <td className="border border-black p-2">
+                            <td className="border p-2 font-bold" style={{ borderColor: '#000000', backgroundColor: '#f3f4f6' }}>Prénom</td>
+                            <td className="border p-2" style={{ borderColor: '#000000' }}>
                                 {getValue(suspect?.full_name?.split(' ')[0], 'suspect_name')}
                             </td>
                         </tr>
                         <tr>
-                            <td className="border border-black p-2 font-bold bg-gray-100">Date de Naissance / Lieu</td>
-                            <td className="border border-black p-2">
+                            <td className="border p-2 font-bold" style={{ borderColor: '#000000', backgroundColor: '#f3f4f6' }}>Date de Naissance / Lieu</td>
+                            <td className="border p-2" style={{ borderColor: '#000000' }}>
                                 {isRedacted('suspect_dob') ? '[REDACTED]' : (
                                     <>
                                         {suspect?.dob ? new Date(suspect.dob).toLocaleDateString() : ''}
@@ -105,14 +107,14 @@ export const ReportPDF = forwardRef<HTMLDivElement, ReportPDFProps>(({ report, a
                             </td>
                         </tr>
                         <tr>
-                            <td className="border border-black p-2 font-bold bg-gray-100">Lieu de résidence</td>
-                            <td className="border border-black p-2">
+                            <td className="border p-2 font-bold" style={{ borderColor: '#000000', backgroundColor: '#f3f4f6' }}>Lieu de résidence</td>
+                            <td className="border p-2" style={{ borderColor: '#000000' }}>
                                 {getValue(suspect?.address, 'suspect_address')}
                             </td>
                         </tr>
                         <tr>
-                            <td className="border border-black p-2 font-bold bg-gray-100">Taille / Poids</td>
-                            <td className="border border-black p-2">
+                            <td className="border p-2 font-bold" style={{ borderColor: '#000000', backgroundColor: '#f3f4f6' }}>Taille / Poids</td>
+                            <td className="border p-2" style={{ borderColor: '#000000' }}>
                                 {suspect?.height ? `${suspect.height}` : ''}
                                 {suspect?.weight ? ` / ${suspect.weight}` : ''}
                             </td>
@@ -123,15 +125,16 @@ export const ReportPDF = forwardRef<HTMLDivElement, ReportPDFProps>(({ report, a
 
             {/* Details */}
             <div className="mb-8 flex-1">
-                <h3 className="font-bold uppercase mb-2 border-b border-black inline-block">DÉTAILS DES FAITS</h3>
+                <h3 className="font-bold uppercase mb-2 border-b" style={{ borderColor: '#000000', display: 'block' }}>DÉTAILS DES FAITS</h3>
                 <div
-                    className="border border-black p-4 min-h-[300px] text-sm [&>p]:mb-2"
+                    className="border p-4 min-h-[300px] text-sm [&>p]:mb-2"
+                    style={{ borderColor: '#000000' }}
                     dangerouslySetInnerHTML={{ __html: report.content }}
                 />
             </div>
 
             {/* Footer */}
-            <div className="mt-auto pt-8 border-t border-black">
+            <div className="mt-auto pt-8 border-t" style={{ borderColor: '#000000' }}>
                 <p className="font-bold">Cordialement,</p>
                 <p className="mt-8">{author?.username || 'Officer Signature'}</p>
             </div>

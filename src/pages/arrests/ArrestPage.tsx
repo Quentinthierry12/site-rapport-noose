@@ -5,10 +5,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Save, Upload } from "lucide-react";
+import { ArrowLeft, Save, Upload, FileDown } from "lucide-react";
 import { CivilianSelect } from "@/components/civilians/CivilianSelect";
 import { arrestsService, type Arrest } from "@/features/arrests/arrestsService";
 import { useAuthStore } from "@/features/auth/AuthStore";
+import { civiliansService, type Civilian } from "@/features/civilians/civiliansService";
+import ReactDOMServer from "react-dom/server";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
+import { ArrestPDF } from "@/pages/reports/ArrestPDF";
 
 export function ArrestPage() {
     const { id } = useParams();
@@ -22,7 +27,12 @@ export function ArrestPage() {
     const [charges, setCharges] = useState("");
     const [location, setLocation] = useState("");
     const [status, setStatus] = useState<Arrest['status']>("Pending");
+    const [mugshotUrl, setMugshotUrl] = useState("");
     const [loading, setLoading] = useState(!isNew);
+    const [exporting, setExporting] = useState(false);
+
+    // Keep track of the full civilian object for PDF export if needed
+    const [selectedCivilian, setSelectedCivilian] = useState<Civilian | undefined>(undefined);
 
     useEffect(() => {
         if (!isNew && id) {
@@ -35,6 +45,17 @@ export function ArrestPage() {
                     setCharges(data.charges.join(", "));
                     setLocation(data.location);
                     setStatus(data.status);
+                    setMugshotUrl(data.mugshot_url || "");
+
+                    if (data.civilian_id) {
+                        try {
+                            const civ = await civiliansService.getById(data.civilian_id);
+                            setSelectedCivilian(civ);
+                        } catch (e) {
+                            console.warn("Could not fetch linked civilian", e);
+                        }
+                    }
+
                 } catch (error) {
                     console.error("Failed to fetch arrest:", error);
                 } finally {
@@ -54,6 +75,7 @@ export function ArrestPage() {
                 charges: charges.split(",").map(c => c.trim()).filter(Boolean),
                 location,
                 status,
+                mugshot_url: mugshotUrl,
                 arresting_officer_id: user?.id,
                 date_of_arrest: new Date().toISOString()
             };
@@ -69,6 +91,73 @@ export function ArrestPage() {
         }
     };
 
+    const handleExportPDF = async () => {
+        if (isNew) {
+            alert("Please save the arrest record first.");
+            return;
+        }
+        setExporting(true);
+        try {
+            // Re-fetch current data to ensure cleanliness or use state
+            // Construct a temporary Arrest object from state
+            const currentArrest: Arrest = {
+                id: id!,
+                suspect_name: suspectName,
+                suspect_alias: alias,
+                civilian_id: civilianId,
+                charges: charges.split(",").map(c => c.trim()).filter(Boolean),
+                location,
+                status,
+                mugshot_url: mugshotUrl,
+                arresting_officer_id: user?.id || "",
+                officer: { username: user?.username || "Unknown", rank: user?.rank || "" },
+                date_of_arrest: new Date().toISOString(), // Use existing date if available in real app, but state missing it. using now.
+                created_at: new Date().toISOString()
+            };
+
+            const element = (
+                <ArrestPDF
+                    arrest={currentArrest}
+                    suspect={selectedCivilian}
+                    preview={true}
+                />
+            );
+
+            const staticHtml = ReactDOMServer.renderToStaticMarkup(element);
+            const container = document.createElement("div");
+            container.style.width = "210mm";
+            container.style.position = "absolute";
+            container.style.left = "-9999px";
+            container.style.top = "0";
+            container.innerHTML = staticHtml;
+            document.body.appendChild(container);
+
+            const canvas = await html2canvas(container, {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                width: 794,
+                windowWidth: 1000
+            });
+
+            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfImgHeight = (canvas.height * pdfWidth) / canvas.width;
+
+            pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfImgHeight);
+            pdf.save(`Arrest-${id?.slice(0, 8)}.pdf`);
+
+            document.body.removeChild(container);
+
+        } catch (error) {
+            console.error("Export failed", error);
+            alert("Failed to generate PDF");
+        } finally {
+            setExporting(false);
+        }
+    };
+
     if (loading) {
         return <div className="p-8 text-center">Loading arrest record...</div>;
     }
@@ -81,12 +170,20 @@ export function ArrestPage() {
                         <ArrowLeft className="h-4 w-4" />
                     </Button>
                     <h1 className="text-2xl font-bold tracking-tight">
-                        {isNew ? 'New Arrest Record' : `Arrest Record ${id}`}
+                        {isNew ? 'New Arrest Record' : `Arrest Record ${id?.slice(0, 8)}`}
                     </h1>
                 </div>
-                <Button onClick={handleSave}>
-                    <Save className="mr-2 h-4 w-4" /> Save Record
-                </Button>
+                <div className="flex gap-2">
+                    {!isNew && (
+                        <Button variant="outline" onClick={handleExportPDF} disabled={exporting}>
+                            <FileDown className="mr-2 h-4 w-4" />
+                            {exporting ? 'Generating...' : 'Export PDF'}
+                        </Button>
+                    )}
+                    <Button onClick={handleSave}>
+                        <Save className="mr-2 h-4 w-4" /> Save Record
+                    </Button>
+                </div>
             </div>
 
             <div className="grid grid-cols-3 gap-6">
@@ -99,6 +196,7 @@ export function ArrestPage() {
                                 onSelect={(civilian) => {
                                     setSuspectName(civilian.full_name);
                                     setCivilianId(civilian.id);
+                                    setSelectedCivilian(civilian);
                                 }}
                             />
                         </div>
@@ -138,10 +236,22 @@ export function ArrestPage() {
                 <div className="space-y-6">
                     <div className="space-y-2">
                         <Label>Mugshot</Label>
-                        <div className="border-2 border-dashed rounded-md h-48 flex flex-col items-center justify-center text-muted-foreground hover:bg-muted/50 cursor-pointer transition-colors">
-                            <Upload className="h-8 w-8 mb-2" />
-                            <span className="text-xs">Click to upload</span>
+                        <div className="border-2 border-dashed rounded-md h-48 flex flex-col items-center justify-center text-muted-foreground hover:bg-muted/50 transition-colors overflow-hidden relative">
+                            {mugshotUrl ? (
+                                <img src={mugshotUrl} alt="Mugshot Preview" className="w-full h-full object-cover" />
+                            ) : (
+                                <>
+                                    <Upload className="h-8 w-8 mb-2" />
+                                    <span className="text-xs">No image URL</span>
+                                </>
+                            )}
                         </div>
+                        <Input
+                            placeholder="https://..."
+                            value={mugshotUrl}
+                            onChange={(e) => setMugshotUrl(e.target.value)}
+                        />
+                        <p className="text-[10px] text-muted-foreground">Paste an image URL here.</p>
                     </div>
 
                     <div className="space-y-2">

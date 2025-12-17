@@ -30,8 +30,9 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuthStore } from "@/features/auth/AuthStore";
-import { UserPlus, Edit, Key, FileDown } from "lucide-react";
+import { UserPlus, Edit, Key, FileDown, Archive, Loader2 } from "lucide-react";
 import { AccountAssignmentPDF } from "@/components/pdf/AccountAssignmentPDF";
+import { generateBackup } from "@/utils/backupSystem";
 
 interface User {
     id: string;
@@ -63,6 +64,29 @@ export function AdminPage() {
     const [resetPasswordUser, setResetPasswordUser] = useState<User | null>(null);
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+
+    // Backup State
+    const [isBackingUp, setIsBackingUp] = useState(false);
+    const [backupStatus, setBackupStatus] = useState("");
+
+    const handleBackup = async () => {
+        if (isBackingUp) return;
+
+        setIsBackingUp(true);
+        setBackupStatus("Starting backup...");
+
+        try {
+            await generateBackup((status) => setBackupStatus(status));
+            setBackupStatus("Downloaded!");
+            setTimeout(() => setBackupStatus(""), 3000);
+        } catch (error) {
+            console.error(error);
+            alert("Backup failed. See console for details.");
+            setBackupStatus("");
+        } finally {
+            setIsBackingUp(false);
+        }
+    };
 
     // PDF Generation State
     const [showPDFSuccess, setShowPDFSuccess] = useState(false);
@@ -244,61 +268,82 @@ export function AdminPage() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <h1 className="text-3xl font-bold tracking-tight">Administration</h1>
-                <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-                    <DialogTrigger asChild>
-                        <Button>
-                            <UserPlus className="mr-2 h-4 w-4" /> Créer un utilisateur
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Créer un nouvel utilisateur</DialogTitle>
-                            <DialogDescription>
-                                Créez un nouveau compte utilisateur avec des identifiants et des permissions.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <div className="grid gap-4 py-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="username">Nom d'utilisateur</Label>
-                                    <Input id="username" value={newUser.username} onChange={(e) => setNewUser({ ...newUser, username: e.target.value })} />
+
+                <div className="flex gap-2">
+                    <Button
+                        variant="outline"
+                        onClick={handleBackup}
+                        disabled={isBackingUp}
+                    >
+                        {isBackingUp ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                {backupStatus}
+                            </>
+                        ) : (
+                            <>
+                                <Archive className="mr-2 h-4 w-4" />
+                                {backupStatus || "System Backup"}
+                            </>
+                        )}
+                    </Button>
+
+                    <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+                        <DialogTrigger asChild>
+                            <Button>
+                                <UserPlus className="mr-2 h-4 w-4" /> Créer un utilisateur
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Créer un nouvel utilisateur</DialogTitle>
+                                <DialogDescription>
+                                    Créez un nouveau compte utilisateur avec des identifiants et des permissions.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="grid gap-4 py-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="username">Nom d'utilisateur</Label>
+                                        <Input id="username" value={newUser.username} onChange={(e) => setNewUser({ ...newUser, username: e.target.value })} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="password">Mot de passe</Label>
+                                        <Input id="password" type="password" value={newUser.password} onChange={(e) => setNewUser({ ...newUser, password: e.target.value })} />
+                                    </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="password">Mot de passe</Label>
-                                    <Input id="password" type="password" value={newUser.password} onChange={(e) => setNewUser({ ...newUser, password: e.target.value })} />
+                                    <Label htmlFor="matricule">Matricule (ID)</Label>
+                                    <Input id="matricule" value={newUser.matricule} onChange={(e) => setNewUser({ ...newUser, matricule: e.target.value })} />
                                 </div>
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="matricule">Matricule (ID)</Label>
-                                <Input id="matricule" value={newUser.matricule} onChange={(e) => setNewUser({ ...newUser, matricule: e.target.value })} />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="rank">Grade</Label>
+                                        <Input id="rank" value={newUser.rank} onChange={(e) => setNewUser({ ...newUser, rank: e.target.value })} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="division">Division</Label>
+                                        <Input id="division" value={newUser.division} onChange={(e) => setNewUser({ ...newUser, division: e.target.value })} />
+                                    </div>
+                                </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="rank">Grade</Label>
-                                    <Input id="rank" value={newUser.rank} onChange={(e) => setNewUser({ ...newUser, rank: e.target.value })} />
+                                    <Label htmlFor="clearance">Niveau d'habilitation</Label>
+                                    <Select value={newUser.clearance} onValueChange={(val) => setNewUser({ ...newUser, clearance: val })}>
+                                        <SelectTrigger><SelectValue placeholder="Sélectionnez l'habilitation" /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="1">Niveau 1 (Confidentiel)</SelectItem>
+                                            <SelectItem value="2">Niveau 2 (Secret)</SelectItem>
+                                            <SelectItem value="3">Niveau 3 (Top Secret)</SelectItem>
+                                            <SelectItem value="4">Niveau 4 (Black Ops)</SelectItem>
+                                            <SelectItem value="5">Niveau 5 (Directeur)</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="division">Division</Label>
-                                    <Input id="division" value={newUser.division} onChange={(e) => setNewUser({ ...newUser, division: e.target.value })} />
-                                </div>
+                                <Button onClick={handleCreateUser}>Créer le compte</Button>
                             </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="clearance">Niveau d'habilitation</Label>
-                                <Select value={newUser.clearance} onValueChange={(val) => setNewUser({ ...newUser, clearance: val })}>
-                                    <SelectTrigger><SelectValue placeholder="Sélectionnez l'habilitation" /></SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="1">Niveau 1 (Confidentiel)</SelectItem>
-                                        <SelectItem value="2">Niveau 2 (Secret)</SelectItem>
-                                        <SelectItem value="3">Niveau 3 (Top Secret)</SelectItem>
-                                        <SelectItem value="4">Niveau 4 (Black Ops)</SelectItem>
-                                        <SelectItem value="5">Niveau 5 (Directeur)</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <Button onClick={handleCreateUser}>Créer le compte</Button>
-                        </div>
-                    </DialogContent>
-                </Dialog>
+                        </DialogContent>
+                    </Dialog>
+                </div>
 
                 <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
                     <DialogContent className="max-w-2xl">
