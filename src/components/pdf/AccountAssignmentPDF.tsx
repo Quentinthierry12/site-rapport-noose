@@ -24,7 +24,7 @@ export const AccountAssignmentPDF = forwardRef<HTMLDivElement, AccountAssignment
         };
 
         return (
-            <div ref={ref} className="hidden print:block p-8 max-w-[210mm] mx-auto bg-white text-black font-serif">
+            <div ref={ref} className="print-only hidden print:block p-8 max-w-[210mm] mx-auto bg-white text-black font-serif">
                 {/* Header */}
                 <div className="text-center mb-8 border-b-2 border-black pb-4">
                     <div className="w-32 h-32 mx-auto mb-4 flex items-center justify-center">

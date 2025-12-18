@@ -33,6 +33,8 @@ import { useAuthStore } from "@/features/auth/AuthStore";
 import { UserPlus, Edit, Key, FileDown, Archive, Loader2 } from "lucide-react";
 import { AccountAssignmentPDF } from "@/components/pdf/AccountAssignmentPDF";
 import { generateBackup } from "@/utils/backupSystem";
+import { renderAndCapture } from "@/utils/pdfGenerator";
+import JSZip from "jszip";
 
 interface User {
     id: string;
@@ -99,6 +101,9 @@ export function AdminPage() {
         clearance: number;
         isPasswordReset: boolean;
     } | null>(null);
+
+    const [isGeneratingBatch, setIsGeneratingBatch] = useState(false);
+    const [batchProgress, setBatchProgress] = useState("");
 
     // New User Form State
     const [newUser, setNewUser] = useState({
@@ -242,6 +247,100 @@ export function AdminPage() {
         }
     };
 
+    const generateRandomPassword = () => {
+        const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+        let retVal = "";
+        for (let i = 0, n = charset.length; i < 12; ++i) {
+            retVal += charset.charAt(Math.floor(Math.random() * n));
+        }
+        return retVal;
+    };
+
+    const handleGenerateMissingAccess = async () => {
+        setIsGeneratingBatch(true);
+        setBatchProgress("Analysing users...");
+        try {
+            // 1. Fetch users with no password (null or empty)
+            const { data: usersToUpdate, error: fetchError } = await supabase
+                .from('noose_user')
+                .select('*')
+                .or('password.is.null,password.eq.""');
+
+            if (fetchError) throw fetchError;
+
+            if (!usersToUpdate || usersToUpdate.length === 0) {
+                alert("Tous les utilisateurs ont déjà un mot de passe configuré.");
+                setIsGeneratingBatch(false);
+                return;
+            }
+
+            if (!confirm(`Voulez-vous générer les accès pour ${usersToUpdate.length} utilisateurs ?\n\nCeci réinitialisera leurs mots de passe.`)) {
+                setIsGeneratingBatch(false);
+                return;
+            }
+
+            const zip = new JSZip();
+            let processedCount = 0;
+
+            // 2. Update each user with a new password and generate PDF
+            for (const user of usersToUpdate) {
+                processedCount++;
+                setBatchProgress(`Processing ${processedCount}/${usersToUpdate.length}: ${user.username}`);
+
+                const newPassword = generateRandomPassword();
+
+                const { error: updateError } = await supabase
+                    .from('noose_user')
+                    .update({ password: newPassword }) // In a real app, hash this!
+                    .eq('id', user.id);
+
+                if (updateError) {
+                    console.error(`Failed to update user ${user.username}`, updateError);
+                    continue;
+                }
+
+                // Generate PDF BLOB
+                const blob = await renderAndCapture(
+                    <AccountAssignmentPDF
+                        username={user.username}
+                        password={newPassword}
+                        matricule={user.matricule}
+                        rank={user.rank}
+                        division={user.division}
+                        clearance={user.clearance}
+                        isPasswordReset={true}
+                    />
+                );
+
+                // Add to ZIP: grade_username.pdf
+                const filename = `${user.rank}_${user.username}.pdf`.replace(/[^a-z0-9._-]/gi, '_');
+                zip.file(filename, blob);
+            }
+
+            // 3. Generate and Download ZIP
+            setBatchProgress("Compressing...");
+            const content = await zip.generateAsync({ type: "blob" });
+            const url = window.URL.createObjectURL(content);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `Initial_Access_${new Date().toISOString().slice(0, 10)}.zip`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            alert(`Accès générés et téléchargés pour ${processedCount} utilisateurs.`);
+            fetchUsers();
+
+        } catch (error) {
+            console.error("Error generating batch access:", error);
+            alert("Une erreur est survenue lors de la génération en masse.");
+        } finally {
+            setIsGeneratingBatch(false);
+            setBatchProgress("");
+        }
+    };
+
     const handleDownloadPDF = () => {
         window.print();
     };
@@ -284,6 +383,24 @@ export function AdminPage() {
                             <>
                                 <Archive className="mr-2 h-4 w-4" />
                                 {backupStatus || "System Backup"}
+                            </>
+                        )}
+                    </Button>
+
+                    <Button
+                        variant="destructive"
+                        onClick={handleGenerateMissingAccess}
+                        disabled={isGeneratingBatch}
+                    >
+                        {isGeneratingBatch ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                {batchProgress || "Processing..."}
+                            </>
+                        ) : (
+                            <>
+                                <FileDown className="mr-2 h-4 w-4" />
+                                Générer accès initiaux
                             </>
                         )}
                     </Button>
