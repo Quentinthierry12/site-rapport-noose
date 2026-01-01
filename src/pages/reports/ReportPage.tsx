@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ReportEditor } from '@/components/editor/ReportEditor';
-import { Save, ArrowLeft, FileDown, Search, X, Shield } from 'lucide-react';
+import { Save, ArrowLeft, FileDown, Search, X, Shield, FileJson, Settings2 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { reportsService } from '@/features/reports/reportsService';
 import { searchService, type SearchResult } from '@/features/search/searchService';
 import { civiliansService, type Civilian } from '@/features/civilians/civiliansService';
@@ -14,6 +15,8 @@ import { ReportPDF } from './ReportPDF';
 import { TeamSelector } from '@/components/teams/TeamSelector';
 import { RedactionEditor } from '@/components/redaction/RedactionEditor';
 import { VersionSelector } from '@/components/redaction/VersionSelector';
+import { templatesService, type DocumentTemplate, type TemplateField } from '@/features/reports/templatesService';
+import { DynamicReportPDF } from './DynamicReportPDF';
 
 
 export function ReportPage() {
@@ -43,6 +46,13 @@ export function ReportPage() {
     const [redactionDialogOpen, setRedactionDialogOpen] = useState(false);
     const [redactedFields, setRedactedFields] = useState<string[]>([]);
 
+    // Template Dynamic State
+    const [templates, setTemplates] = useState<DocumentTemplate[]>([]);
+    const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
+    const [selectedTemplate, setSelectedTemplate] = useState<DocumentTemplate | null>(null);
+    const [templateSchema, setTemplateSchema] = useState<TemplateField[]>([]);
+    const [templateData, setTemplateData] = useState<Record<string, any>>({});
+
     useEffect(() => {
         if (!isNew && id) {
             async function fetchReport() {
@@ -64,6 +74,14 @@ export function ReportPage() {
                     // Load shared teams
                     if (data.shared_with_teams) {
                         setSharedTeams(data.shared_with_teams);
+                    }
+                    // Load template data
+                    if (data.template_id) {
+                        setSelectedTemplateId(data.template_id);
+                        setTemplateData(data.template_data || {});
+                        const t = await templatesService.getById(data.template_id);
+                        setSelectedTemplate(t);
+                        setTemplateSchema(t.schema);
                     }
                 } catch (error) {
                     console.error("Failed to fetch report:", error);
@@ -106,6 +124,36 @@ export function ReportPage() {
         }
     }, [suspectId]);
 
+    // Fetch Available Templates
+    useEffect(() => {
+        templatesService.getAll().then(setTemplates).catch(console.error);
+    }, []);
+
+    const handleTemplateChange = async (templateId: string) => {
+        if (templateId === "none") {
+            setSelectedTemplateId(null);
+            setTemplateSchema([]);
+            setTemplateData({});
+            return;
+        }
+        setSelectedTemplateId(templateId);
+        try {
+            const template = await templatesService.getById(templateId);
+            setSelectedTemplate(template);
+            setTemplateSchema(template.schema);
+            // Initialize template data with empty values if not already set
+            const newData = { ...templateData };
+            template.schema.forEach(field => {
+                if (!(field.id in newData)) {
+                    newData[field.id] = field.type === 'boolean' ? false : "";
+                }
+            });
+            setTemplateData(newData);
+        } catch (error) {
+            console.error("Failed to fetch template schema:", error);
+        }
+    };
+
     const handleSelectSuspect = async (id: string) => {
         setSuspectId(id);
         setSearchQuery("");
@@ -132,7 +180,9 @@ export function ReportPage() {
                 content,
                 status,
                 author_id: user?.id,
-                suspect_id: suspectId || undefined
+                suspect_id: suspectId || undefined,
+                template_id: selectedTemplateId || undefined,
+                template_data: selectedTemplateId ? templateData : undefined
             };
 
             if (isNew) {
@@ -152,6 +202,23 @@ export function ReportPage() {
 
     const handlePrint = () => {
         window.print();
+    };
+
+    const handleExportJSON = () => {
+        const fullReportData = {
+            ...reportData,
+            template_schema: templateSchema,
+            template_data: templateData,
+            author_details: user,
+            suspect_details: suspect
+        };
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(fullReportData, null, 2));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", `report_${id || 'new'}_${title.toLowerCase().replace(/\s+/g, '_')}.json`);
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
     };
 
     if (loading) {
@@ -174,12 +241,22 @@ export function ReportPage() {
     return (
         <>
             <div className="print-only hidden print:block">
-                <ReportPDF
-                    report={reportData}
-                    author={user}
-                    suspect={suspect}
-                    redactedFields={redactedFields}
-                />
+                {selectedTemplate ? (
+                    <DynamicReportPDF
+                        report={reportData}
+                        template={selectedTemplate}
+                        templateData={templateData}
+                        author={user}
+                        redactedFields={redactedFields}
+                    />
+                ) : (
+                    <ReportPDF
+                        report={reportData}
+                        author={user}
+                        suspect={suspect}
+                        redactedFields={redactedFields}
+                    />
+                )}
             </div>
             <div className="space-y-6 max-w-4xl mx-auto print:hidden">
                 <div className="flex items-center justify-between">
@@ -207,6 +284,9 @@ export function ReportPage() {
                                 <Button variant="outline" onClick={handlePrint}>
                                     <FileDown className="mr-2 h-4 w-4" /> Export PDF
                                 </Button>
+                                <Button variant="outline" onClick={handleExportJSON}>
+                                    <FileJson className="mr-2 h-4 w-4" /> Export JSON
+                                </Button>
                             </>
                         )}
                         <Button onClick={handleSave}>
@@ -231,6 +311,68 @@ export function ReportPage() {
                             <Label>Content</Label>
                             <ReportEditor content={content} onChange={setContent} />
                         </div>
+
+                        {/* Dynamic Template Fields */}
+                        {selectedTemplateId && templateSchema.length > 0 && (
+                            <div className="p-6 border rounded-lg bg-muted/30 space-y-6">
+                                <h3 className="text-lg font-semibold flex items-center gap-2">
+                                    <Settings2 className="h-5 w-5" /> Informations Complémentaires
+                                </h3>
+                                <div className="grid grid-cols-2 gap-6">
+                                    {templateSchema.map(field => (
+                                        <div key={field.id} className={field.type === 'textarea' ? 'col-span-2 space-y-2' : 'space-y-2'}>
+                                            <Label className="flex items-center gap-1">
+                                                {field.label}
+                                                {field.required && <span className="text-destructive">*</span>}
+                                            </Label>
+                                            {field.type === 'text' && (
+                                                <Input
+                                                    value={templateData[field.id] || ""}
+                                                    onChange={(e) => setTemplateData({ ...templateData, [field.id]: e.target.value })}
+                                                    required={field.required}
+                                                />
+                                            )}
+                                            {field.type === 'number' && (
+                                                <Input
+                                                    type="number"
+                                                    value={templateData[field.id] || ""}
+                                                    onChange={(e) => setTemplateData({ ...templateData, [field.id]: e.target.value })}
+                                                    required={field.required}
+                                                />
+                                            )}
+                                            {field.type === 'date' && (
+                                                <Input
+                                                    type="date"
+                                                    value={templateData[field.id] || ""}
+                                                    onChange={(e) => setTemplateData({ ...templateData, [field.id]: e.target.value })}
+                                                    required={field.required}
+                                                />
+                                            )}
+                                            {field.type === 'textarea' && (
+                                                <textarea
+                                                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                                    value={templateData[field.id] || ""}
+                                                    onChange={(e) => setTemplateData({ ...templateData, [field.id]: e.target.value })}
+                                                    required={field.required}
+                                                />
+                                            )}
+                                            {field.type === 'boolean' && (
+                                                <div className="flex items-center space-x-2 pt-2">
+                                                    <Checkbox
+                                                        id={field.id}
+                                                        checked={templateData[field.id] || false}
+                                                        onCheckedChange={(val) => setTemplateData({ ...templateData, [field.id]: !!val })}
+                                                    />
+                                                    <label htmlFor={field.id} className="text-sm font-medium leading-none cursor-pointer">
+                                                        {field.label}
+                                                    </label>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="space-y-6">
@@ -250,6 +392,24 @@ export function ReportPage() {
                             </Select>
                             <p className="text-xs text-muted-foreground">
                                 Higher classification restricts access to authorized personnel only.
+                            </p>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label>Document Template</Label>
+                            <Select value={selectedTemplateId || "none"} onValueChange={handleTemplateChange}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select a template" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="none">Aucun template (Libre)</SelectItem>
+                                    {templates.map(t => (
+                                        <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <p className="text-xs text-muted-foreground">
+                                Utiliser un template pour structurer les données du document.
                             </p>
                         </div>
 

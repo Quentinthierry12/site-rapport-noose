@@ -34,7 +34,7 @@ export const SuspectPDF = forwardRef<HTMLDivElement, SuspectPDFProps>(({
 
                 <div className="text-sm font-bold space-y-1">
                     <p>Date d'édition : {new Date().toLocaleDateString()}</p>
-                    <p>Référence : US-GOV/US-NOOSE/CIV-{suspect.id.slice(0, 8).toUpperCase()}</p>
+                    <p>Référence : US-GOV/US-NOOSE/CIV-{suspect.id ? suspect.id.slice(0, 8).toUpperCase() : 'TEMP'}</p>
                 </div>
             </div>
 

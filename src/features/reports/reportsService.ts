@@ -24,6 +24,8 @@ export interface Report {
     updated_at: string;
     tags?: string[];
     shared_with_teams?: string[];
+    template_id?: string;
+    template_data?: Record<string, any>;
 }
 
 export const reportsService = {
