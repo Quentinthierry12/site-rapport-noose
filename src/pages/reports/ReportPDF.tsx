@@ -43,11 +43,12 @@ export const ReportPDF = forwardRef<HTMLDivElement, ReportPDFProps>(({ report, a
             {/* Warning Text */}
             <div className="text-[10px] text-justify mb-8 leading-tight space-y-2">
                 <p>
-                    Ce document est classé <strong>CONFIDENTIEL</strong> et est destiné à un usage interne uniquement. Toute divulgation non autorisée, reproduction ou distribution de ce document est strictement interdite et constitue une violation des protocoles de sécurité du DHS.
+                    Ce document est classé <strong>CONFIDENTIEL</strong> et est destiné à un usage interne uniquement. Toute divulgation non autorisée, reproduction ou distribution de ce document est strictement interdite et constitue une violation des protocoles de sécurité du DHS. Les conséquences d'une telle violation peuvent inclure des sanctions disciplinaires, pouvant aller jusqu'au licenciement, des poursuites judiciaires, ainsi que des répercussions pénales conformément aux lois suivantes :
                 </p>
-                <p><strong>U.S. Code Title 18 § 793</strong> - Espionnage et divulgation de documents relatifs à la défense nationale.</p>
-                <p><strong>U.S. Code Title 18 § 1905</strong> - Divulgation de renseignements confidentiels.</p>
-                <p><strong>DHS Directive 100-01</strong> - Security and Emergency Preparedness.</p>
+                <p><strong>U.S. Code Title 18 § 793</strong> - Espionnage et divulgation de documents relatifs à la défense nationale : Cette loi sanctionne la divulgation non autorisée de documents classifiés relatifs à la sécurité nationale.</p>
+                <p><strong>U.S. Code Title 18 § 1905</strong> - Divulgation de renseignements confidentiels : Cette disposition interdit la divulgation non autorisée de renseignements confidentiels obtenus par un agent fédéral.</p>
+                <p><strong>DHS Directive 100-01</strong> - Security and Emergency Preparedness : Cette directive stipule que toute information classifiée ou sensible doit être protégée contre toute divulgation non autorisée.</p>
+                <p><strong>DHS Directive 256-01</strong> - Protection of Sensitive Information : Cette directive définit les procédures et responsabilités pour la gestion et la protection des informations sensibles au sein du DHS.</p>
             </div>
 
             {/* Object */}
@@ -124,7 +125,7 @@ export const ReportPDF = forwardRef<HTMLDivElement, ReportPDFProps>(({ report, a
             </div>
 
             {/* Details */}
-            <div className="mb-8 flex-1">
+            <div className="mb-8 flex-2">
                 <h3 className="font-bold uppercase mb-2 border-b" style={{ borderColor: '#000000', display: 'block' }}>DÉTAILS DES FAITS</h3>
                 <div
                     className="border p-4 min-h-[300px] text-sm [&>p]:mb-2"

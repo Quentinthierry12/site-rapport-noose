@@ -40,7 +40,17 @@ export function CivilianProfile() {
         setShowExportDialog(false);
         // Small delay to allow dialog to close and state to settle before printing
         setTimeout(() => {
+            const date = new Date();
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const sanitizedName = (formData.full_name || 'unknown').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+            const fileName = `${year}_${month}_${day}_profile_${sanitizedName}`;
+
+            const originalTitle = document.title;
+            document.title = fileName;
             window.print();
+            document.title = originalTitle;
         }, 300);
     };
 

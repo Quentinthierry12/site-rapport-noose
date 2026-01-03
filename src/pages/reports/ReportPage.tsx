@@ -182,17 +182,14 @@ export function ReportPage() {
                 author_id: user?.id,
                 suspect_id: suspectId || undefined,
                 template_id: selectedTemplateId || undefined,
-                template_data: selectedTemplateId ? templateData : undefined
+                template_data: selectedTemplateId ? templateData : undefined,
+                shared_with_teams: sharedTeams
             };
 
             if (isNew) {
                 await reportsService.create(reportData);
             } else if (id) {
                 await reportsService.update(id, reportData);
-                // Update shared teams if changed
-                if (sharedTeams.length > 0 || sharedTeams.length !== (await reportsService.getById(id)).shared_with_teams?.length) {
-                    await reportsService.shareWithTeams(id, sharedTeams);
-                }
             }
             navigate('/reports');
         } catch (error) {
@@ -201,7 +198,17 @@ export function ReportPage() {
     };
 
     const handlePrint = () => {
+        const date = new Date();
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const sanitizedTitle = title.toLowerCase().replace(/[^a-z0-9]/g, '_');
+        const fileName = `${year}_${month}_${day}_rapport_${sanitizedTitle}`;
+
+        const originalTitle = document.title;
+        document.title = fileName;
         window.print();
+        document.title = originalTitle;
     };
 
     const handleExportJSON = () => {

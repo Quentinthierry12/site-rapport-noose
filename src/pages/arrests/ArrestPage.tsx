@@ -146,7 +146,14 @@ export function ArrestPage() {
             const pdfImgHeight = (canvas.height * pdfWidth) / canvas.width;
 
             pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfImgHeight);
-            pdf.save(`Arrest-${id?.slice(0, 8)}.pdf`);
+            const date = new Date();
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const sanitizedName = suspectName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+            const fileName = `${year}_${month}_${day}_${sanitizedName}.pdf`;
+
+            pdf.save(fileName);
 
             document.body.removeChild(container);
 
