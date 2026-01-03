@@ -28,9 +28,12 @@ export const ArrestPDF = forwardRef<HTMLDivElement, ArrestPDFProps>(({ arrest, s
             {/* Warning Text */}
             <div className="text-[10px] text-justify mb-8 leading-tight space-y-2">
                 <p>
-                    Ce document est classé <strong>CONFIDENTIEL</strong>. Il consigne les détails d'une arrestation officielle effectuée par les services du NOOSE.
+                    Ce document est classé <strong>CONFIDENTIEL</strong> et est destiné à un usage interne uniquement. Toute divulgation non autorisée, reproduction ou distribution de ce document est strictement interdite et constitue une violation des protocoles de sécurité du DHS. Les conséquences d'une telle violation peuvent inclure des sanctions disciplinaires, pouvant aller jusqu'au licenciement, des poursuites judiciaires, ainsi que des répercussions pénales conformément aux lois suivantes :
                 </p>
-                <p><strong>DHS Directive 100-01</strong> - Usage interne uniquement.</p>
+                <p><strong>U.S. Code Title 18 § 793</strong> - Espionnage et divulgation de documents relatifs à la défense nationale : Cette loi sanctionne la divulgation non autorisée de documents classifiés relatifs à la sécurité nationale.</p>
+                <p><strong>U.S. Code Title 18 § 1905</strong> - Divulgation de renseignements confidentiels : Cette disposition interdit la divulgation non autorisée de renseignements confidentiels obtenus par un agent fédéral.</p>
+                <p><strong>DHS Directive 100-01</strong> - Security and Emergency Preparedness : Cette directive stipule que toute information classifiée ou sensible doit être protégée contre toute divulgation non autorisée.</p>
+                <p><strong>DHS Directive 256-01</strong> - Protection of Sensitive Information : Cette directive définit les procédures et responsabilités pour la gestion et la protection des informations sensibles au sein du DHS.</p>
             </div>
 
             {/* Mugshot & Main Info */}
