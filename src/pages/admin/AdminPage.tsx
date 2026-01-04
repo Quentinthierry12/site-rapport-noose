@@ -38,9 +38,10 @@ import { renderAndCapture } from "@/utils/pdfGenerator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { templatesService } from "@/features/reports/templatesService";
 import type { DocumentTemplate, TemplateField } from "@/features/reports/templatesService";
-import { Plus, Trash2, FileJson, Settings2, Users, PlusCircle, Eye, EyeOff } from "lucide-react";
+import { Plus, Trash2, FileJson, Settings2, Users, PlusCircle, Eye, EyeOff, Gavel } from "lucide-react";
 import JSZip from "jszip";
 import { DynamicReportPDF } from "../reports/DynamicReportPDF";
+import { PenalCodeManager } from "./components/PenalCodeManager";
 
 interface User {
     id: string;
@@ -383,6 +384,9 @@ export function AdminPage() {
                     <TabsTrigger value="templates" className="flex items-center gap-2">
                         <Settings2 className="h-4 w-4" /> Templates de Document
                     </TabsTrigger>
+                    <TabsTrigger value="penal_code" className="flex items-center gap-2">
+                        <Gavel className="h-4 w-4" /> Code Pénal
+                    </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="users" className="space-y-6">
@@ -691,6 +695,10 @@ export function AdminPage() {
 
                 <TabsContent value="templates" className="space-y-6">
                     <TemplateManager />
+                </TabsContent>
+
+                <TabsContent value="penal_code" className="space-y-6">
+                    <PenalCodeManager />
                 </TabsContent>
             </Tabs>
         </div>

@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Save, Upload, FileDown } from "lucide-react";
 import { CivilianSelect } from "@/components/civilians/CivilianSelect";
 import { arrestsService, type Arrest } from "@/features/arrests/arrestsService";
+import { ChargeSelect } from "@/components/arrests/ChargeSelect";
 import { useAuthStore } from "@/features/auth/AuthStore";
 import { civiliansService, type Civilian } from "@/features/civilians/civiliansService";
 import ReactDOMServer from "react-dom/server";
@@ -24,7 +24,7 @@ export function ArrestPage() {
     const [suspectName, setSuspectName] = useState("");
     const [civilianId, setCivilianId] = useState<string | undefined>(undefined);
     const [alias, setAlias] = useState("");
-    const [charges, setCharges] = useState("");
+    const [charges, setCharges] = useState<string[]>([]);
     const [location, setLocation] = useState("");
     const [status, setStatus] = useState<Arrest['status']>("Pending");
     const [mugshotUrl, setMugshotUrl] = useState("");
@@ -42,7 +42,7 @@ export function ArrestPage() {
                     setSuspectName(data.suspect_name);
                     setCivilianId(data.civilian_id);
                     setAlias(data.suspect_alias || "");
-                    setCharges(data.charges.join(", "));
+                    setCharges(data.charges || []);
                     setLocation(data.location);
                     setStatus(data.status);
                     setMugshotUrl(data.mugshot_url || "");
@@ -72,7 +72,7 @@ export function ArrestPage() {
                 suspect_name: suspectName,
                 suspect_alias: alias,
                 civilian_id: civilianId,
-                charges: charges.split(",").map(c => c.trim()).filter(Boolean),
+                charges: charges,
                 location,
                 status,
                 mugshot_url: mugshotUrl,
@@ -105,7 +105,7 @@ export function ArrestPage() {
                 suspect_name: suspectName,
                 suspect_alias: alias,
                 civilian_id: civilianId,
-                charges: charges.split(",").map(c => c.trim()).filter(Boolean),
+                charges: charges,
                 location,
                 status,
                 mugshot_url: mugshotUrl,
@@ -219,13 +219,10 @@ export function ArrestPage() {
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="charges">Charges (comma separated)</Label>
-                        <Textarea
-                            id="charges"
-                            value={charges}
-                            onChange={(e) => setCharges(e.target.value)}
-                            placeholder="e.g. Grand Theft Auto, Evading Arrest, Possession"
-                            className="h-24"
+                        <Label htmlFor="charges">Charges (Code Pénal)</Label>
+                        <ChargeSelect
+                            selectedCharges={charges}
+                            onChargesChange={setCharges}
                         />
                     </div>
 
