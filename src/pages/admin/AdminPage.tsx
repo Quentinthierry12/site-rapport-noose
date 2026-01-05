@@ -169,7 +169,7 @@ export function AdminPage() {
                 password: newUser.password,
                 matricule: newUser.matricule,
                 rank: newUser.rank || "Agent",
-                division: newUser.division || "General",
+                division: newUser.division || "Terrain",
                 clearance: parseInt(newUser.clearance),
                 isPasswordReset: false
             });
@@ -257,7 +257,7 @@ export function AdminPage() {
     const generateRandomPassword = () => {
         const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
         let retVal = "";
-        for (let i = 0, n = charset.length; i < 12; ++i) {
+        for (let i = 0, n = charset.length; i < 8; ++i) {
             retVal += charset.charAt(Math.floor(Math.random() * n));
         }
         return retVal;
