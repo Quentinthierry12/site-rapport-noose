@@ -43,7 +43,7 @@ export function RecentReportsWidget() {
                                     <p className="text-xs text-muted-foreground">{report.id} • {new Date(report.created_at).toLocaleDateString()}</p>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <span className={`text-xs px-2 py-0.5 rounded-full ${report.status === 'Validated' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' :
+                                    <span className={`text-xs px-2 py-0.5 rounded-full ${report.status === 'Validé' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' :
                                         'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100'
                                         }`}>
                                         {report.status}

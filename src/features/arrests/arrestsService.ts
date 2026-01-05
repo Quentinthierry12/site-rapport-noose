@@ -14,6 +14,7 @@ export interface Arrest {
     date_of_arrest: string;
     location: string;
     mugshot_url?: string;
+    report_id?: string; // Link to the automatically created report
     status: 'Pending' | 'Processed' | 'In Custody' | 'Released';
     created_at: string;
 }

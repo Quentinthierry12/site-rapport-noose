@@ -30,6 +30,7 @@ export function ReportPage() {
     const [classification, setClassification] = useState('Unclassified');
     const [content, setContent] = useState('');
     const [status, setStatus] = useState('Draft');
+    const [authorId, setAuthorId] = useState<string | null>(null);
     const [createdAt, setCreatedAt] = useState(new Date().toISOString());
     const [loading, setLoading] = useState(!isNew);
 
@@ -63,6 +64,7 @@ export function ReportPage() {
                     setClassification(data.classification);
                     setContent(data.content);
                     setStatus(data.status);
+                    setAuthorId(data.author_id);
                     setCreatedAt(data.created_at);
                     if (data.suspect_id) {
                         setSuspectId(data.suspect_id);
@@ -261,6 +263,12 @@ export function ReportPage() {
         return <div className="p-8 text-center">Loading report...</div>;
     }
 
+    const canEdit = isNew
+        ? user?.permissions.includes('reports.create')
+        : (user?.permissions.includes('reports.edit') || (user?.id === authorId && status !== 'Validé'));
+
+    const canValidate = user?.permissions.includes('reports.validate');
+
     // Construct report object for PDF
     const reportData = {
         id: id || 'NEW',
@@ -269,7 +277,7 @@ export function ReportPage() {
         content,
         status,
         created_at: createdAt,
-        author_id: user?.id || '',
+        author_id: authorId || user?.id || '',
         updated_at: new Date().toISOString(),
         suspect_id: suspectId || undefined
     };
@@ -301,10 +309,10 @@ export function ReportPage() {
                             <ArrowLeft className="h-4 w-4" />
                         </Button>
                         <h1 className="text-2xl font-bold tracking-tight">
-                            {isNew ? 'New Report' : `Report ${id}`}
+                            {isNew ? 'New Report' : `Report ${title}`}
                         </h1>
                         {!isNew && (
-                            <span className={`text-xs px-2 py-0.5 rounded-full border ${status === 'Validated' ? 'bg-green-100 text-green-800 border-green-200' :
+                            <span className={`text-xs px-2 py-0.5 rounded-full border ${status === 'Validé' ? 'bg-green-100 text-green-800 border-green-200' :
                                 'bg-yellow-100 text-yellow-800 border-yellow-200'
                                 }`}>
                                 {status}
@@ -325,7 +333,7 @@ export function ReportPage() {
                                 </Button>
                             </>
                         )}
-                        <Button onClick={handleSave}>
+                        <Button onClick={handleSave} disabled={!canEdit}>
                             <Save className="mr-2 h-4 w-4" /> Save Report
                         </Button>
                     </div>
@@ -340,12 +348,13 @@ export function ReportPage() {
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                                 placeholder="Enter report title"
+                                disabled={!canEdit}
                             />
                         </div>
 
                         <div className="space-y-2">
                             <Label>Content</Label>
-                            <ReportEditor content={content} onChange={setContent} />
+                            <ReportEditor content={content} onChange={setContent} readOnly={!canEdit} />
                         </div>
 
                         {/* Dynamic Template Fields */}
@@ -366,6 +375,7 @@ export function ReportPage() {
                                                     value={templateData[field.id] || ""}
                                                     onChange={(e) => setTemplateData({ ...templateData, [field.id]: e.target.value })}
                                                     required={field.required}
+                                                    disabled={!canEdit}
                                                 />
                                             )}
                                             {field.type === 'number' && (
@@ -374,6 +384,7 @@ export function ReportPage() {
                                                     value={templateData[field.id] || ""}
                                                     onChange={(e) => setTemplateData({ ...templateData, [field.id]: e.target.value })}
                                                     required={field.required}
+                                                    disabled={!canEdit}
                                                 />
                                             )}
                                             {field.type === 'date' && (
@@ -382,6 +393,7 @@ export function ReportPage() {
                                                     value={templateData[field.id] || ""}
                                                     onChange={(e) => setTemplateData({ ...templateData, [field.id]: e.target.value })}
                                                     required={field.required}
+                                                    disabled={!canEdit}
                                                 />
                                             )}
                                             {field.type === 'textarea' && (
@@ -390,6 +402,7 @@ export function ReportPage() {
                                                     value={templateData[field.id] || ""}
                                                     onChange={(e) => setTemplateData({ ...templateData, [field.id]: e.target.value })}
                                                     required={field.required}
+                                                    disabled={!canEdit}
                                                 />
                                             )}
                                             {field.type === 'boolean' && (
@@ -398,6 +411,7 @@ export function ReportPage() {
                                                         id={field.id}
                                                         checked={templateData[field.id] || false}
                                                         onCheckedChange={(val) => setTemplateData({ ...templateData, [field.id]: !!val })}
+                                                        disabled={!canEdit}
                                                     />
                                                     <label htmlFor={field.id} className="text-sm font-medium leading-none cursor-pointer">
                                                         {field.label}
@@ -414,7 +428,7 @@ export function ReportPage() {
                     <div className="space-y-6">
                         <div className="space-y-2">
                             <Label>Classification</Label>
-                            <Select value={classification} onValueChange={setClassification}>
+                            <Select value={classification} onValueChange={setClassification} disabled={!canEdit}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select classification" />
                                 </SelectTrigger>
@@ -438,7 +452,7 @@ export function ReportPage() {
 
                         <div className="space-y-2">
                             <Label>Document Template</Label>
-                            <Select value={selectedTemplateId || "none"} onValueChange={handleTemplateChange}>
+                            <Select value={selectedTemplateId || "none"} onValueChange={handleTemplateChange} disabled={!canEdit}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select a template" />
                                 </SelectTrigger>
@@ -456,14 +470,20 @@ export function ReportPage() {
 
                         <div className="space-y-2">
                             <Label>Status</Label>
-                            <Select value={status} onValueChange={setStatus}>
+                            <Select
+                                value={status}
+                                onValueChange={setStatus}
+                                disabled={!canEdit && !canValidate}
+                            >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select status" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="Draft">Draft</SelectItem>
-                                    <SelectItem value="Validated">Validated</SelectItem>
-                                    <SelectItem value="Archived">Archived</SelectItem>
+                                    <SelectItem value="En cours de Redaction">En cours de Redaction</SelectItem>
+                                    <SelectItem value="En Attente de validation">En Attente de validation</SelectItem>
+                                    {(canValidate || status === 'Validé') && (
+                                        <SelectItem value="Validé">Validé</SelectItem>
+                                    )}
                                 </SelectContent>
                             </Select>
                         </div>
@@ -476,7 +496,7 @@ export function ReportPage() {
                                         <p className="font-medium text-sm">{suspect.full_name}</p>
                                         <p className="text-xs text-muted-foreground">DOB: {suspect.dob || 'Unknown'}</p>
                                     </div>
-                                    <Button variant="ghost" size="icon" onClick={handleRemoveSuspect}>
+                                    <Button variant="ghost" size="icon" onClick={handleRemoveSuspect} disabled={!canEdit}>
                                         <X className="h-4 w-4" />
                                     </Button>
                                 </div>
@@ -488,6 +508,7 @@ export function ReportPage() {
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
                                         className="pl-8 border-0 focus-visible:ring-0"
+                                        disabled={!canEdit}
                                     />
                                     {searchQuery.length >= 2 && (
                                         <div className="absolute top-full left-0 right-0 z-10 bg-popover text-popover-foreground shadow-md rounded-md border mt-1 max-h-60 overflow-auto">

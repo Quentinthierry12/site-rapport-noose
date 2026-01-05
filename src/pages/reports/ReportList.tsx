@@ -6,9 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Search, Filter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { reportsService, type Report } from "@/features/reports/reportsService";
+import { useAuthStore } from "@/features/auth/AuthStore";
 
 export function ReportList() {
     const navigate = useNavigate();
+    const { user } = useAuthStore();
     const [searchTerm, setSearchTerm] = useState("");
     const [reports, setReports] = useState<Report[]>([]);
     const [loading, setLoading] = useState(true);
@@ -36,9 +38,11 @@ export function ReportList() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <h1 className="text-3xl font-bold tracking-tight">Rapports</h1>
-                <Button onClick={() => navigate("/reports/new")}>
-                    <Plus className="mr-2 h-4 w-4" /> Nouveau rapport
-                </Button>
+                {user?.permissions.includes('reports.create') && (
+                    <Button onClick={() => navigate("/reports/new")}>
+                        <Plus className="mr-2 h-4 w-4" /> Nouveau rapport
+                    </Button>
+                )}
             </div>
 
             <div className="flex items-center gap-2">
@@ -100,7 +104,7 @@ export function ReportList() {
                                         </Badge>
                                     </TableCell>
                                     <TableCell>
-                                        <Badge variant={report.status === 'Validated' ? 'default' : 'secondary'}>
+                                        <Badge variant={report.status === 'Validé' ? 'default' : 'secondary'}>
                                             {report.status}
                                         </Badge>
                                     </TableCell>

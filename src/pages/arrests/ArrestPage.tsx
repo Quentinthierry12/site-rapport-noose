@@ -14,6 +14,8 @@ import ReactDOMServer from "react-dom/server";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { ArrestPDF } from "@/pages/reports/ArrestPDF";
+import { ReportEditor } from "@/components/editor/ReportEditor";
+import { reportsService } from "@/features/reports/reportsService";
 
 export function ArrestPage() {
     const { id } = useParams();
@@ -30,6 +32,8 @@ export function ArrestPage() {
     const [mugshotUrl, setMugshotUrl] = useState("");
     const [loading, setLoading] = useState(!isNew);
     const [exporting, setExporting] = useState(false);
+    const [factsDetails, setFactsDetails] = useState("");
+    const [reportId, setReportId] = useState<string | undefined>(undefined);
 
     // Keep track of the full civilian object for PDF export if needed
     const [selectedCivilian, setSelectedCivilian] = useState<Civilian | undefined>(undefined);
@@ -46,6 +50,16 @@ export function ArrestPage() {
                     setLocation(data.location);
                     setStatus(data.status);
                     setMugshotUrl(data.mugshot_url || "");
+                    setReportId(data.report_id);
+
+                    if (data.report_id) {
+                        try {
+                            const report = await reportsService.getById(data.report_id);
+                            setFactsDetails(report.content);
+                        } catch (e) {
+                            console.warn("Could not fetch linked report", e);
+                        }
+                    }
 
                     if (data.civilian_id) {
                         try {
@@ -68,6 +82,37 @@ export function ArrestPage() {
 
     const handleSave = async () => {
         try {
+            let currentReportId = reportId;
+
+            if (isNew && factsDetails) {
+                const date = new Date();
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const sanitizedName = suspectName.toLowerCase()
+                    .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Remove accents
+                    .replace(/\s+/g, '_')
+                    .replace(/[^a-z0-9_]/g, '');
+
+                const reportTitle = `${year}_${month}_${day}_${sanitizedName}`;
+
+                const newReport = await reportsService.create({
+                    title: reportTitle,
+                    content: factsDetails,
+                    author_id: user?.id,
+                    suspect_id: civilianId,
+                    classification: 'Law Enforcement Sensitive',
+                    status: 'Draft'
+                });
+                currentReportId = newReport.id;
+            } else if (!isNew && reportId && factsDetails) {
+                // Update existing report
+                await reportsService.update(reportId, {
+                    content: factsDetails,
+                    suspect_id: civilianId
+                });
+            }
+
             const arrestData = {
                 suspect_name: suspectName,
                 suspect_alias: alias,
@@ -76,6 +121,7 @@ export function ArrestPage() {
                 location,
                 status,
                 mugshot_url: mugshotUrl,
+                report_id: currentReportId,
                 arresting_officer_id: user?.id,
                 date_of_arrest: new Date().toISOString()
             };
@@ -234,6 +280,17 @@ export function ArrestPage() {
                             onChange={(e) => setLocation(e.target.value)}
                             placeholder="Street Address or Coordinates"
                         />
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label>Détails des faits</Label>
+                        <ReportEditor
+                            content={factsDetails}
+                            onChange={setFactsDetails}
+                        />
+                        <p className="text-[10px] text-muted-foreground italic">
+                            Un rapport sera automatiquement créé à partir de ces détails.
+                        </p>
                     </div>
                 </div>
 
