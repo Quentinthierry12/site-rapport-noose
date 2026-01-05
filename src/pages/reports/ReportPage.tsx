@@ -13,6 +13,7 @@ import { civiliansService, type Civilian } from '@/features/civilians/civiliansS
 import { useAuthStore } from '@/features/auth/AuthStore';
 import { ReportPDF } from './ReportPDF';
 import { TeamSelector } from '@/components/teams/TeamSelector';
+import { notificationsService } from '@/features/notifications/notificationsService';
 import { RedactionEditor } from '@/components/redaction/RedactionEditor';
 import { VersionSelector } from '@/components/redaction/VersionSelector';
 import { templatesService, type DocumentTemplate, type TemplateField } from '@/features/reports/templatesService';
@@ -187,9 +188,37 @@ export function ReportPage() {
             };
 
             if (isNew) {
-                await reportsService.create(reportData);
+                const newReport = await reportsService.create(reportData);
+                // Notify teams
+                if (sharedTeams.length > 0) {
+                    for (const teamId of sharedTeams) {
+                        await notificationsService.notifyTeamOfSharedReport(
+                            teamId,
+                            newReport.id,
+                            title,
+                            user?.username || 'Un officier'
+                        );
+                    }
+                }
             } else if (id) {
+                // Get old report to check for new shares
+                const oldReport = await reportsService.getById(id);
+                const oldTeams = oldReport.shared_with_teams || [];
+
                 await reportsService.update(id, reportData);
+
+                // Notify only newly added teams
+                const newTeams = sharedTeams.filter(tid => !oldTeams.includes(tid));
+                if (newTeams.length > 0) {
+                    for (const teamId of newTeams) {
+                        await notificationsService.notifyTeamOfSharedReport(
+                            teamId,
+                            id,
+                            title,
+                            user?.username || 'Un officier'
+                        );
+                    }
+                }
             }
             navigate('/reports');
         } catch (error) {
@@ -486,7 +515,7 @@ export function ReportPage() {
                                 <TeamSelector
                                     selectedTeams={sharedTeams}
                                     onTeamsChange={setSharedTeams}
-                                    userDivision={user?.division}
+                                    userDivision={user?.permissions.includes('reports.create') ? undefined : user?.division}
                                 />
                                 <p className="text-xs text-muted-foreground">
                                     Share this report with specific teams for collaboration.

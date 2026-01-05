@@ -15,6 +15,7 @@ import { CivilianProfile } from '@/pages/civilians/CivilianProfile';
 import { VehicleList } from '@/pages/vehicles/VehicleList';
 import { WeaponList } from '@/pages/weapons/WeaponList';
 import { TeamsPage } from '@/pages/teams/TeamsPage';
+import { InboxPage } from '@/pages/teams/InboxPage';
 
 import { useEffect } from 'react';
 
@@ -50,6 +51,8 @@ function App() {
             <Route path="/vehicles" element={<VehicleList />} />
             <Route path="/weapons" element={<WeaponList />} />
             <Route path="/teams" element={<TeamsPage />} />
+            <Route path="/teams/inbox" element={<InboxPage />} />
+            <Route path="/teams/:id" element={<TeamsPage />} />
           </Route>
         </Route>
 

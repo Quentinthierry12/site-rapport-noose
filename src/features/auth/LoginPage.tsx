@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from './AuthStore';
 import { authService } from './authService';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,9 @@ export function LoginPage() {
     const [error, setError] = useState('');
     const login = useAuthStore((state) => state.login);
     const navigate = useNavigate();
+    const location = useLocation();
+
+    const from = (location.state as any)?.from?.pathname || "/";
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -22,7 +25,7 @@ export function LoginPage() {
             const user = await authService.login(username, password);
             if (user) {
                 login(user);
-                navigate('/');
+                navigate(from, { replace: true });
             } else {
                 setError('Identifiants invalides');
             }

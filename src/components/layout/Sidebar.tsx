@@ -11,9 +11,10 @@ import {
     Folder
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuthStore } from "@/features/auth/AuthStore";
 import { Button } from "@/components/ui/button";
+import { teamsService, type Team } from "@/features/teams/teamsService";
 
 interface SidebarItemProps {
     icon: React.ElementType;
@@ -71,6 +72,13 @@ function SidebarItem({ icon: Icon, label, to, children }: SidebarItemProps) {
 
 export function Sidebar() {
     const { user, logout } = useAuthStore();
+    const [userTeams, setUserTeams] = useState<Team[]>([]);
+
+    useEffect(() => {
+        if (user?.id) {
+            teamsService.getUserTeams(user.id).then(setUserTeams).catch(console.error);
+        }
+    }, [user?.id]);
 
     return (
         <aside className="w-64 border-r bg-background flex flex-col h-screen sticky top-0">
@@ -105,8 +113,32 @@ export function Sidebar() {
                     <SidebarItem icon={Briefcase} label="Archivés" to="/investigations?filter=archived" />
                 </SidebarItem>
 
+                <SidebarItem icon={Folder} label="Équipes">
+                    <SidebarItem icon={LogOut} label="Boite de réception" to="/teams/inbox" />
+                    <SidebarItem icon={Folder} label="Mes Équipes">
+                        {userTeams.length > 0 ? (
+                            userTeams.map(team => (
+                                <SidebarItem
+                                    key={team.id}
+                                    icon={Users}
+                                    label={team.name}
+                                    to={`/teams/${team.id}`}
+                                />
+                            ))
+                        ) : (
+                            <p className="text-[10px] text-muted-foreground p-2 px-4 italic">Rejoignez une équipe</p>
+                        )}
+                        <SidebarItem icon={Settings} label="Gérer les équipes" to="/teams" />
+                    </SidebarItem>
+                </SidebarItem>
+
+                {user?.permissions.includes('reports.create') && (
+                    <SidebarItem icon={Folder} label="Administration Équipes">
+                        <SidebarItem icon={Settings} label="Toutes les équipes" to="/teams?filter=all" />
+                    </SidebarItem>
+                )}
+
                 <div className="pt-4 mt-4 border-t">
-                    <SidebarItem icon={Users} label="Équipes" to="/teams" />
                     <SidebarItem icon={Settings} label="Administration" to="/admin" />
                 </div>
             </nav>

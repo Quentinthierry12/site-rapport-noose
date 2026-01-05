@@ -29,12 +29,14 @@ export function TeamSelector({ selectedTeams, onTeamsChange, userDivision }: Tea
     const [teams, setTeams] = useState<Team[]>([]);
     const [selectedTeamObjects, setSelectedTeamObjects] = useState<Team[]>([]);
     const [loading, setLoading] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
 
     // Load teams
     useEffect(() => {
         const loadTeams = async () => {
             setLoading(true);
             try {
+                // If user is admin, they should see all teams
                 const data = await teamsService.getAll(userDivision);
                 setTeams(data);
             } catch (error) {
@@ -46,6 +48,17 @@ export function TeamSelector({ selectedTeams, onTeamsChange, userDivision }: Tea
         loadTeams();
     }, [userDivision]);
 
+    // Manually filter teams
+    const filteredTeams = teams.filter(team => {
+        if (!searchQuery) return true;
+        const search = searchQuery.toLowerCase();
+        return (
+            team.name.toLowerCase().includes(search) ||
+            team.division.toLowerCase().includes(search) ||
+            team.description?.toLowerCase().includes(search)
+        );
+    });
+
     // Load selected team objects
     useEffect(() => {
         const loadSelectedTeams = async () => {
@@ -53,6 +66,7 @@ export function TeamSelector({ selectedTeams, onTeamsChange, userDivision }: Tea
                 setSelectedTeamObjects([]);
                 return;
             }
+            // Filter from the full list of teams we loaded
             const teamObjs = teams.filter(t => selectedTeams.includes(t.id));
             setSelectedTeamObjects(teamObjs);
         };
@@ -81,23 +95,27 @@ export function TeamSelector({ selectedTeams, onTeamsChange, userDivision }: Tea
                         className="w-full justify-between"
                     >
                         {selectedTeams.length > 0
-                            ? `${selectedTeams.length} team(s) selected`
-                            : "Select teams to share with..."}
+                            ? `${selectedTeams.length} équipe(s) sélectionnée(s)`
+                            : "Partager avec des équipes..."}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[400px] p-0">
-                    <Command>
-                        <CommandInput placeholder="Search teams..." />
+                <PopoverContent className="w-[400px] p-0" align="start">
+                    <Command shouldFilter={false}>
+                        <CommandInput
+                            placeholder="Rechercher une équipe..."
+                            value={searchQuery}
+                            onValueChange={setSearchQuery}
+                        />
                         <CommandList>
                             <CommandEmpty>
-                                {loading ? "Loading teams..." : "No teams found."}
+                                {loading ? "Chargement..." : "Aucune équipe trouvée."}
                             </CommandEmpty>
-                            <CommandGroup heading="Available Teams">
-                                {teams.map((team) => (
+                            <CommandGroup heading="Équipes disponibles">
+                                {filteredTeams.map((team) => (
                                     <CommandItem
                                         key={team.id}
-                                        value={team.name}
+                                        value={team.id}
                                         onSelect={() => handleToggleTeam(team.id)}
                                     >
                                         <Check

@@ -19,13 +19,16 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Plus, Users, Trash2, UserPlus, UserMinus } from "lucide-react";
+import { Plus, Users, Trash2, UserPlus, UserMinus, Search } from "lucide-react";
 import { teamsService, type Team, type TeamWithMembers } from "@/features/teams/teamsService";
 import { useAuthStore } from "@/features/auth/AuthStore";
 import { TeamBadge } from "@/components/teams/TeamBadge";
 import { supabase } from "@/lib/supabase";
+import { useParams, useSearchParams } from "react-router-dom";
 
 export function TeamsPage() {
+    const { id } = useParams();
+    const [searchParams, setSearchParams] = useSearchParams();
     const { user } = useAuthStore();
     const [teams, setTeams] = useState<Team[]>([]);
     const [selectedTeam, setSelectedTeam] = useState<TeamWithMembers | null>(null);
@@ -33,6 +36,8 @@ export function TeamsPage() {
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
     const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
     const [addMemberDialogOpen, setAddMemberDialogOpen] = useState(false);
+    const [filter, setFilter] = useState<'all' | 'mine'>((searchParams.get('filter') as 'all' | 'mine') || 'mine');
+    const [searchQuery, setSearchQuery] = useState("");
 
     // New team form
     const [newTeamName, setNewTeamName] = useState("");
@@ -46,14 +51,24 @@ export function TeamsPage() {
     useEffect(() => {
         loadTeams();
         loadUsers();
-    }, []);
+    }, [filter]);
+
+    useEffect(() => {
+        if (id) {
+            handleViewTeam(id);
+        }
+    }, [id]);
 
     const loadTeams = async () => {
         setLoading(true);
         try {
-            // Load teams based on user's division (or all if admin)
-            const hasAdminAccess = user?.permissions.includes('admin.access');
-            const data = await teamsService.getAll(hasAdminAccess ? undefined : user?.division);
+            let data: Team[] = [];
+            if (filter === 'mine' && user?.id) {
+                data = await teamsService.getUserTeams(user.id);
+            } else {
+                const hasAdminAccess = user?.permissions.includes('reports.create');
+                data = await teamsService.getAll(hasAdminAccess ? undefined : user?.division);
+            }
             setTeams(data);
         } catch (error) {
             console.error("Failed to load teams:", error);
@@ -152,6 +167,11 @@ export function TeamsPage() {
         }
     };
 
+    const filteredTeams = teams.filter(t =>
+        t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        t.division.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     if (loading) {
         return <div className="p-8 text-center">Chargement des équipes...</div>;
     }
@@ -159,75 +179,116 @@ export function TeamsPage() {
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold tracking-tight">Équipes & Divisions</h1>
-                <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-                    <DialogTrigger asChild>
-                        <Button>
-                            <Plus className="mr-2 h-4 w-4" /> Créer une équipe
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Créer une nouvelle équipe</DialogTitle>
-                            <DialogDescription>
-                                Créez une équipe au sein de votre division pour collaborer sur des dossiers.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4 py-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="teamName">Nom de l'équipe</Label>
-                                <Input
-                                    id="teamName"
-                                    value={newTeamName}
-                                    onChange={(e) => setNewTeamName(e.target.value)}
-                                    placeholder="ex: Unité Homicides"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="division">Division</Label>
-                                <Select value={newTeamDivision} onValueChange={setNewTeamDivision}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Sélectionnez une division" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="Investigation">Investigation</SelectItem>
-                                        <SelectItem value="Patrol">Patrol</SelectItem>
-                                        <SelectItem value="Tactical">Tactical</SelectItem>
-                                        <SelectItem value="Intelligence">Intelligence</SelectItem>
-                                        <SelectItem value="Cybersecurity">Cybersecurity</SelectItem>
-                                        <SelectItem value="General">General</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="description">Description (Optionnel)</Label>
-                                <Textarea
-                                    id="description"
-                                    value={newTeamDescription}
-                                    onChange={(e) => setNewTeamDescription(e.target.value)}
-                                    placeholder="Brève description de l'objectif de l'équipe..."
-                                    className="h-20"
-                                />
-                            </div>
-                            <Button onClick={handleCreateTeam} className="w-full">
-                                Créer l'équipe
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">Équipes & Divisions</h1>
+                    <p className="text-muted-foreground">Gérez vos équipes et collaborez sur des dossiers.</p>
+                </div>
+                <div className="flex items-center gap-2">
+                    <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+                        <DialogTrigger asChild>
+                            <Button variant="outline">
+                                <Plus className="mr-2 h-4 w-4" /> Créer une équipe
                             </Button>
-                        </div>
-                    </DialogContent>
-                </Dialog>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Créer une nouvelle équipe</DialogTitle>
+                                <DialogDescription>
+                                    Créez une équipe au sein de votre division pour collaborer sur des dossiers.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-4 py-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="teamName">Nom de l'équipe</Label>
+                                    <Input
+                                        id="teamName"
+                                        value={newTeamName}
+                                        onChange={(e) => setNewTeamName(e.target.value)}
+                                        placeholder="ex: Unité Homicides"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="division">Division</Label>
+                                    <Select value={newTeamDivision} onValueChange={setNewTeamDivision}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Sélectionnez une division" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Investigation">Investigation</SelectItem>
+                                            <SelectItem value="Patrol">Patrol</SelectItem>
+                                            <SelectItem value="Tactical">Tactical</SelectItem>
+                                            <SelectItem value="Intelligence">Intelligence</SelectItem>
+                                            <SelectItem value="Cybersecurity">Cybersecurity</SelectItem>
+                                            <SelectItem value="General">General</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="description">Description (Optionnel)</Label>
+                                    <Textarea
+                                        id="description"
+                                        value={newTeamDescription}
+                                        onChange={(e) => setNewTeamDescription(e.target.value)}
+                                        placeholder="Brève description de l'objectif de l'équipe..."
+                                        className="h-20"
+                                    />
+                                </div>
+                                <Button onClick={handleCreateTeam} className="w-full">
+                                    Créer l'équipe
+                                </Button>
+                            </div>
+                        </DialogContent>
+                    </Dialog>
+                </div>
+            </div>
+
+            <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-2 bg-muted/30 p-1 rounded-lg">
+                    <Button
+                        variant={filter === 'all' ? 'secondary' : 'ghost'}
+                        size="sm"
+                        onClick={() => {
+                            setFilter('all');
+                            setSearchParams({ filter: 'all' });
+                        }}
+                        className="h-8"
+                    >
+                        Toutes les équipes
+                    </Button>
+                    <Button
+                        variant={filter === 'mine' ? 'secondary' : 'ghost'}
+                        size="sm"
+                        onClick={() => {
+                            setFilter('mine');
+                            setSearchParams({ filter: 'mine' });
+                        }}
+                        className="h-8"
+                    >
+                        Mes équipes
+                    </Button>
+                </div>
+                <div className="relative flex-1 max-w-sm">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        placeholder="Rechercher une équipe..."
+                        className="pl-9"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                </div>
             </div>
 
             {/* Teams Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {teams.length === 0 ? (
+                {filteredTeams.length === 0 ? (
                     <Card className="col-span-full">
                         <CardContent className="p-8 text-center text-muted-foreground">
                             <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                            <p>Aucune équipe trouvée. Créez votre première équipe pour commencer.</p>
+                            <p>Aucune équipe trouvée.</p>
                         </CardContent>
                     </Card>
                 ) : (
-                    teams.map((team) => (
+                    filteredTeams.map((team) => (
                         <Card
                             key={team.id}
                             className="cursor-pointer hover:shadow-lg transition-shadow"
