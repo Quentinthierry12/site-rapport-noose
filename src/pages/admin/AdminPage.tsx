@@ -470,11 +470,11 @@ export function AdminPage() {
                                         <Select value={newUser.clearance} onValueChange={(val) => setNewUser({ ...newUser, clearance: val })}>
                                             <SelectTrigger><SelectValue placeholder="Sélectionnez l'habilitation" /></SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="1">Niveau 1 (Confidentiel)</SelectItem>
-                                                <SelectItem value="2">Niveau 2 (Secret)</SelectItem>
-                                                <SelectItem value="3">Niveau 3 (Top Secret)</SelectItem>
-                                                <SelectItem value="4">Niveau 4 (Black Ops)</SelectItem>
-                                                <SelectItem value="5">Niveau 5 (Directeur)</SelectItem>
+                                                <SelectItem value="1">Niveau 1 (Habilitation Limité)</SelectItem>
+                                                <SelectItem value="2">Niveau 2 (Confidentiel)</SelectItem>
+                                                <SelectItem value="3">Niveau 3 (Secret)</SelectItem>
+                                                <SelectItem value="4">Niveau 4 (Top Secret)</SelectItem>
+                                                <SelectItem value="5">Niveau 5 (Direction)</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -523,11 +523,11 @@ export function AdminPage() {
                                         >
                                             <SelectTrigger><SelectValue /></SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="1">Niveau 1 (Confidentiel)</SelectItem>
-                                                <SelectItem value="2">Niveau 2 (Secret)</SelectItem>
-                                                <SelectItem value="3">Niveau 3 (Top Secret)</SelectItem>
-                                                <SelectItem value="4">Niveau 4 (Black Ops)</SelectItem>
-                                                <SelectItem value="5">Niveau 5 (Directeur)</SelectItem>
+                                                <SelectItem value="1">Niveau 1 (Habilitation Limité)</SelectItem>
+                                                <SelectItem value="2">Niveau 2 (Confidentiel)</SelectItem>
+                                                <SelectItem value="3">Niveau 3 (Secret)</SelectItem>
+                                                <SelectItem value="4">Niveau 4 (Top Secret)</SelectItem>
+                                                <SelectItem value="5">Niveau 5 (Direction)</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
