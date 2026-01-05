@@ -132,7 +132,7 @@ export function Sidebar() {
                     </SidebarItem>
                 </SidebarItem>
 
-                {user?.permissions.includes('reports.create') && (
+                {user?.permissions.includes('admin.access') && (
                     <SidebarItem icon={Folder} label="Administration Équipes">
                         <SidebarItem icon={Settings} label="Toutes les équipes" to="/teams?filter=all" />
                     </SidebarItem>

@@ -107,7 +107,7 @@ export function InboxPage() {
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <Badge variant={report.classification === 'Unclassified' ? 'outline' : 'destructive'}>
+                                        <Badge variant={report.classification === 'Publicly Releasable Information' ? 'outline' : 'destructive'}>
                                             {report.classification}
                                         </Badge>
                                     </TableCell>

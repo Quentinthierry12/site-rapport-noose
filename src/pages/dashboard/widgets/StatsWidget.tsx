@@ -40,7 +40,7 @@ export function StatsWidget() {
                     <AlertTriangle className="h-4 w-4 text-red-500" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold text-red-500">ÉLEVÉ</div>
+                    <div className="text-2xl font-bold text-green-500">DEFCON 5</div>
                     <p className="text-xs text-muted-foreground">Évaluation de menace active</p>
                 </CardContent>
             </Card>

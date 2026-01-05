@@ -95,7 +95,7 @@ export function ReportList() {
                                     </TableCell>
                                     <TableCell>{new Date(report.created_at).toLocaleDateString()}</TableCell>
                                     <TableCell>
-                                        <Badge variant={report.classification === 'Unclassified' ? 'secondary' : 'destructive'}>
+                                        <Badge variant={report.classification === 'Publicly Releasable Information' ? 'secondary' : 'destructive'}>
                                             {report.classification}
                                         </Badge>
                                     </TableCell>

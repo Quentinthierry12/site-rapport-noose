@@ -419,8 +419,13 @@ export function ReportPage() {
                                     <SelectValue placeholder="Select classification" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="Unclassified">Unclassified</SelectItem>
-                                    <SelectItem value="Restricted">Restricted</SelectItem>
+                                    <SelectItem value="Publicly Releasable Information">Publicly Releasable Information</SelectItem>
+                                    <SelectItem value="Sensitive But Unclassified ">Sensitive But Unclassified </SelectItem>
+                                    <SelectItem value="Privacy Act Information">Privacy Act Information</SelectItem>
+                                    <SelectItem value="Protected Critical Infrastructure Information">Protected Critical Infrastructure Information</SelectItem>
+                                    <SelectItem value="Sensitive Security Information">Sensitive Security Information</SelectItem>
+                                    <SelectItem value="For Official Use Only">For Official Use Only</SelectItem>
+                                    <SelectItem value="Law Enforcement Sensitive">Law Enforcement Sensitive</SelectItem>
                                     <SelectItem value="Confidential">Confidential</SelectItem>
                                     <SelectItem value="Secret">Secret</SelectItem>
                                     <SelectItem value="Top Secret">Top Secret</SelectItem>

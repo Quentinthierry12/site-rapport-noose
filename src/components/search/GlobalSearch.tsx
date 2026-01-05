@@ -111,7 +111,7 @@ export function GlobalSearch() {
                                             {result.summary}
                                         </span>
                                     </div>
-                                    {result.classification !== 'Unclassified' && (
+                                    {result.classification !== 'Publicly Releasable Information' && (
                                         <span className="ml-auto text-xs font-bold text-red-500">
                                             {result.classification.toUpperCase()}
                                         </span>
