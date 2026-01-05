@@ -102,7 +102,7 @@ export function ArrestPage() {
                     author_id: user?.id,
                     suspect_id: civilianId,
                     classification: 'Law Enforcement Sensitive',
-                    status: 'Draft'
+                    status: 'En Attente de validation'
                 });
                 currentReportId = newReport.id;
             } else if (!isNew && reportId && factsDetails) {
