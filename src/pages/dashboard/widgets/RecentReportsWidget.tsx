@@ -28,13 +28,13 @@ export function RecentReportsWidget() {
     return (
         <Card className="col-span-1">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Recent Reports</CardTitle>
+                <CardTitle className="text-sm font-medium">Rapports récents</CardTitle>
                 <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
                 <div className="space-y-4">
                     {reports.length === 0 ? (
-                        <p className="text-sm text-muted-foreground">No recent reports.</p>
+                        <p className="text-sm text-muted-foreground">Aucun rapport récent.</p>
                     ) : (
                         reports.map((report) => (
                             <div key={report.id} className="flex items-center justify-between border-b pb-2 last:border-0 last:pb-0">

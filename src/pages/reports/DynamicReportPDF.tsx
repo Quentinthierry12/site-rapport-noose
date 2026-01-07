@@ -2,7 +2,7 @@ import { forwardRef } from 'react';
 import { type DocumentTemplate, type TemplateField } from '@/features/reports/templatesService';
 import { type Report } from '@/features/reports/reportsService';
 import { type User } from '@/features/auth/AuthStore';
-import { Users } from 'lucide-react';
+import { Users, Car, Image as ImageIcon } from 'lucide-react';
 
 interface DynamicReportPDFProps {
     report: Partial<Report>;
@@ -30,7 +30,274 @@ export const DynamicReportPDF = forwardRef<HTMLDivElement, DynamicReportPDFProps
         return val || 'N/A';
     };
 
+    const color = settings.theme_color || '#1e3a8a';
+
+    // Helper to find template data by label (fallback)
+    const getValueByLabel = (label: string) => {
+        const field = template.schema.find(f => f.label.toLowerCase() === label.toLowerCase());
+        if (field) return renderValue(field);
+        // Try direct lookup if ID was used as label
+        return templateData[label] || '---';
+    };
+
+    // --- Toolbox V2: Block-based Layout ---
+    const renderCustomBlocks = () => {
+        const blocks = settings.blocks || [];
+
+        // If no blocks, but V2 layout is selected, show a warning
+        if (blocks.length === 0) {
+            return (
+                <div className="p-10 text-center border-4 border-dashed border-gray-200 text-gray-400">
+                    <p>Aucun bloc configuré pour ce template V2.</p>
+                </div>
+            );
+        }
+
+        return (
+            <div className="p-8 w-[210mm] min-h-[297mm] mx-auto font-serif text-black bg-white flex flex-col shadow-lg border">
+                {blocks.map((block) => {
+                    switch (block.type) {
+                        case 'classification':
+                            const level = block.config.level || 'CONFIDENTIAL';
+                            const colors: Record<string, string> = {
+                                'TOP SECRET': 'bg-red-700',
+                                'RESTRICTED': 'bg-orange-600',
+                                'CONFIDENTIAL': 'bg-yellow-500',
+                                'UNCLASSIFIED': 'bg-green-600'
+                            };
+                            return (
+                                <div key={block.id} className="mb-6">
+                                    <div className={`w-full py-1 text-center text-white text-[12px] font-black tracking-[0.5em] uppercase ${colors[level] || 'bg-black'}`}>
+                                        --- {level} ---
+                                    </div>
+                                </div>
+                            );
+
+                        case 'header':
+                            return (
+                                <div key={block.id} className="relative mb-6 text-center border-b-2 border-black pb-4">
+                                    <div className="w-24 h-24 mx-auto mb-2 flex items-center justify-center">
+                                        <img src="/noose-seal.png" alt="Seal" className="w-full h-full object-contain" />
+                                    </div>
+                                    <div className="space-y-0.5">
+                                        <h1 className="text-xl font-black uppercase tracking-[0.15em]">National Office of Security Enforcement</h1>
+                                        <div className="text-[10px] font-bold tracking-widest text-gray-600 px-3 py-0.5 bg-gray-100 inline-block">
+                                            DEPARTMENT OF HOMELAND SECURITY
+                                        </div>
+                                        <h2 className="text-2xl font-bold uppercase underline decoration-1 underline-offset-4 mt-2">{settings.header_title || template.name}</h2>
+                                    </div>
+                                    <div className="mt-4 flex justify-between items-center text-[10px] font-bold">
+                                        <div className="text-left w-1/3">
+                                            <p>REF: <span className="font-mono">{report.id?.slice(0, 8).toUpperCase() || 'DRAFT'}</span></p>
+                                        </div>
+                                        <div className="px-3 py-1 border border-black bg-white z-10">
+                                            CLASSIFICATION: <span className="uppercase text-red-700">{report.classification || 'CONFIDENTIAL'}</span>
+                                        </div>
+                                        <div className="text-right w-1/3">
+                                            <p>DATE: {new Date().toLocaleDateString('fr-FR')}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+
+                        case 'warning':
+                            return (
+                                <div key={block.id} className="mb-6 p-4 border-l-4 border-red-800 bg-red-50/30">
+                                    <p className="text-[9px] leading-tight text-justify uppercase font-bold italic text-red-950">
+                                        {block.config.text || "Ce document est classé CONFIDENTIEL et est destiné à un usage interne uniquement. Toute divulgation non autorisée, reproduction ou distribution de ce document est strictement interdite et constitue une violation des protocoles de sécurité du DHS. (U.S. Code Title 18 § 793 - Espionnage)."}
+                                    </p>
+                                </div>
+                            );
+
+                        case 'personnel':
+                            return (
+                                <div key={block.id} className="mb-6 border border-black shadow-sm max-w-[300px]">
+                                    <div className="bg-black text-white text-[9px] font-bold px-3 py-1 uppercase tracking-widest">DÉSIGNATION DE L'OFFICIER</div>
+                                    <div className="p-3 grid grid-cols-1 gap-2">
+                                        <div className="flex justify-between items-end border-b border-gray-100 pb-1">
+                                            <span className="text-[7px] text-gray-400 font-bold uppercase">IDENTITÉ</span>
+                                            <span className="text-[11px] font-black uppercase font-serif">{author?.username || "---"}</span>
+                                        </div>
+                                        <div className="flex justify-between items-end border-b border-gray-100 pb-1">
+                                            <span className="text-[7px] text-gray-400 font-bold uppercase">UNITÉ / MATRICULE</span>
+                                            <span className="text-[11px] font-black uppercase font-mono">{author?.matricule || "---"}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+
+                        case 'suspect':
+                            return (
+                                <div key={block.id} className="mb-6 grid grid-cols-12 gap-4">
+                                    <div className="col-span-4 border-2 border-black p-1">
+                                        <div className="aspect-[1/1] bg-gray-100 flex items-center justify-center border border-black overflow-hidden relative">
+                                            <div className="text-[8px] opacity-20 font-bold uppercase">NO PHOTO</div>
+                                            <div className="absolute top-0 right-0 bg-black text-white text-[7px] px-1 font-bold">ID-FILE</div>
+                                        </div>
+                                        <div className="bg-black text-white text-[9px] font-bold p-1 text-center uppercase truncate"> TARGET </div>
+                                    </div>
+                                    <div className="col-span-8 border border-black h-fit">
+                                        <div className="bg-gray-100 border-b border-black p-1">
+                                            <h3 className="font-bold text-[10px] uppercase tracking-wider pl-1 font-serif">Target Intelligence</h3>
+                                        </div>
+                                        <table className="w-full text-[10px] border-collapse font-serif">
+                                            <tbody>
+                                                <tr>
+                                                    <td className="border-r border-b border-black p-1.5 bg-gray-50 font-bold w-1/3">NAME</td>
+                                                    <td className="border-b border-black p-1.5 font-medium uppercase">--- REDACTED ---</td>
+                                                </tr>
+                                                <tr>
+                                                    <td className="border-r border-black p-1.5 bg-gray-50 font-bold">STATUS</td>
+                                                    <td className="p-1.5 font-medium uppercase font-mono text-red-600">WATCHLIST</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            );
+
+                        case 'vehicle':
+                            return (
+                                <div key={block.id} className="mb-6 border border-black">
+                                    <div className="bg-black text-white text-[9px] font-bold px-2 py-0.5 uppercase tracking-wider flex justify-between">
+                                        <span>Détails du Véhicule</span>
+                                        <Car className="h-3 w-3" />
+                                    </div>
+                                    <div className="p-3 grid grid-cols-2 gap-4">
+                                        <div className="border-b border-gray-200">
+                                            <p className="text-[7px] font-bold text-gray-500 uppercase">MARQUE / MODÈLE</p>
+                                            <p className="text-[10px] font-bold uppercase truncate">--- REDACTED ---</p>
+                                        </div>
+                                        <div className="border-b border-gray-200">
+                                            <p className="text-[7px] font-bold text-gray-500 uppercase">PLAQUE</p>
+                                            <p className="text-[10px] font-mono font-bold uppercase">---</p>
+                                        </div>
+                                        <div className="border-b border-gray-200">
+                                            <p className="text-[7px] font-bold text-gray-500 uppercase">COULEUR</p>
+                                            <p className="text-[10px] font-bold uppercase">---</p>
+                                        </div>
+                                        <div className="border-b border-gray-200">
+                                            <p className="text-[7px] font-bold text-gray-500 uppercase">PROPRIÉTAIRE</p>
+                                            <p className="text-[10px] font-bold uppercase italic">INQUIRY PENDING</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+
+                        case 'evidence':
+                            return (
+                                <div key={block.id} className="mb-6">
+                                    <div className="bg-gray-100 border-l-4 border-black p-2 mb-2">
+                                        <h3 className="text-[10px] items-center font-bold uppercase tracking-wider flex gap-2">
+                                            <ImageIcon className="h-3 w-3" /> Galerie des Preuves
+                                        </h3>
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-2 min-h-[100px] border-2 border-dashed border-gray-200 p-2 text-gray-400">
+                                        <div className="aspect-square bg-gray-50 border border-gray-100 flex flex-col items-center justify-center italic text-[8px]">
+                                            <ImageIcon className="h-6 w-6 opacity-10 mb-1" />
+                                            IMG-01
+                                        </div>
+                                        <div className="aspect-square bg-gray-50 border border-gray-100 flex flex-col items-center justify-center italic text-[8px]">
+                                            <ImageIcon className="h-6 w-6 opacity-10 mb-1" />
+                                            IMG-02
+                                        </div>
+                                        <div className="aspect-square bg-gray-50 border border-gray-100 flex flex-col items-center justify-center italic text-[8px]">
+                                            <ImageIcon className="h-6 w-6 opacity-10 mb-1" />
+                                            IMG-03
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+
+                        case 'narrative':
+                            const variant = block.config.variant || 'standard';
+                            return (
+                                <div key={block.id} className="mb-6">
+                                    <div className="bg-gray-800 text-white px-2 py-0.5 mb-1 flex justify-between items-center">
+                                        <h3 className="font-bold text-[10px] uppercase tracking-widest text-white">{block.config.title || 'Déroulement'}</h3>
+                                        <span className="text-[8px] opacity-50 font-mono">DHS-INTEL</span>
+                                    </div>
+                                    <div
+                                        className={`text-[11px] text-justify p-4 border border-black bg-white ${variant === 'lined' ? 'bg-lined' : ''}`}
+                                        style={variant === 'lined' ? {
+                                            backgroundImage: 'linear-gradient(transparent 95%, #f3f4f6 95%)',
+                                            backgroundSize: '100% 1.6rem',
+                                            lineHeight: '1.6rem'
+                                        } : {}}
+                                    >
+                                        <div className="min-h-[60px]" dangerouslySetInnerHTML={{ __html: report.content || '...' }} />
+                                    </div>
+                                </div>
+                            );
+
+                        case 'fields':
+                            return (
+                                <div key={block.id} className="mb-6 grid grid-cols-1 gap-1 border border-black p-3 bg-gray-50/30">
+                                    {block.fields && block.fields.length > 0 ? (
+                                        block.fields.map((field: any) => (
+                                            <div key={field.id} className="flex border-b border-gray-100 last:border-0 pb-1 items-end justify-between">
+                                                <span className="text-[8px] font-bold text-gray-500 uppercase">{field.label}:</span>
+                                                <span className="text-[10px] font-bold uppercase">{getValueByLabel(field.label)}</span>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        // Fallback: show all schema fields if no specific fields defined in block
+                                        template.schema.map((field) => (
+                                            <div key={field.id} className="flex border-b border-gray-100 last:border-0 pb-1 items-end justify-between">
+                                                <span className="text-[8px] font-bold text-gray-500 uppercase">{field.label}:</span>
+                                                <span className="text-[10px] font-bold uppercase">{renderValue(field)}</span>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            );
+
+                        case 'signature':
+                            return (
+                                <div key={block.id} className="mt-10 flex justify-end">
+                                    <div className="flex flex-col items-end">
+                                        <div className="relative border-b border-black w-48 h-8 flex items-center justify-center">
+                                            <span className="text-lg font-serif italic text-gray-300 pointer-events-none select-none">
+                                                {author?.username}
+                                            </span>
+                                            <div className="absolute -top-2 -left-2 text-[6px] border border-black px-1 font-bold bg-white">SIGN HERE</div>
+                                        </div>
+                                        <div className="text-right mt-1">
+                                            <p className="text-[9px] font-black uppercase">{author?.username || 'AGENT'}</p>
+                                            <p className="text-[7px] text-gray-400 font-bold uppercase tracking-tighter italic">Verified Field Agent - NOOSE Intelligence</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+
+                        case 'spacer':
+                            const height = block.config.height || 40;
+                            return <div key={block.id} style={{ height: `${height}px` }} />;
+
+                        case 'footer':
+                            return (
+                                <div key={block.id} className="mt-auto pt-4 border-t border-gray-100 italic text-[7px] text-gray-400 flex justify-between uppercase font-bold">
+                                    <span>{block.config.text || "NATIONAL OFFICE OF SECURITY ENFORCEMENT - CLASSIFIED DOCUMENT"}</span>
+                                    <span>COPYRIGHT © {new Date().getFullYear()}</span>
+                                </div>
+                            );
+
+                        default:
+                            return null;
+                    }
+                })}
+            </div>
+        );
+    };
+
     const renderLayout = () => {
+        // AUTO-FORCE custom_v2 if blocks exist, to improve UX
+        const hasBlocks = settings.blocks && settings.blocks.length > 0;
+
+        if (settings.layout_type === 'custom_v2' || hasBlocks) {
+            return renderCustomBlocks();
+        }
+
         switch (settings.layout_type) {
             case 'arrest_warrant':
                 return renderArrestWarrant();
@@ -42,8 +309,6 @@ export const DynamicReportPDF = forwardRef<HTMLDivElement, DynamicReportPDFProps
                 return renderStandardReport();
         }
     };
-
-    const color = settings.theme_color || '#1e3a8a';
 
     // --- Standard Report Layout (A4) ---
     const renderStandardReport = () => (
@@ -89,9 +354,7 @@ export const DynamicReportPDF = forwardRef<HTMLDivElement, DynamicReportPDFProps
                 {report.content && (
                     <div className="mt-8">
                         <h3 className="font-bold border-b border-black mb-2 uppercase text-xs">Déroulement / Observations</h3>
-                        <div className="text-sm leading-relaxed text-justify whitespace-pre-wrap">
-                            {report.content}
-                        </div>
+                        <div className="text-sm leading-relaxed text-justify whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: report.content }}></div>
                     </div>
                 )}
             </div>

@@ -28,13 +28,13 @@ export function ActiveInvestigationsWidget() {
     return (
         <Card className="col-span-1">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Active Investigations</CardTitle>
+                <CardTitle className="text-sm font-medium">Investigations actives</CardTitle>
                 <Briefcase className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
                 <div className="space-y-4">
                     {investigations.length === 0 ? (
-                        <p className="text-sm text-muted-foreground">No active investigations.</p>
+                        <p className="text-sm text-muted-foreground">Aucune investigation active.</p>
                     ) : (
                         investigations.map((inv) => (
                             <div key={inv.id} className="flex items-center justify-between border-b pb-2 last:border-0 last:pb-0">

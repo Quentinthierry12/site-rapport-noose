@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Filter } from "lucide-react";
+import { Plus, Search, Filter, FileType } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { reportsService, type Report } from "@/features/reports/reportsService";
 import { useAuthStore } from "@/features/auth/AuthStore";
@@ -38,11 +38,16 @@ export function ReportList() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <h1 className="text-3xl font-bold tracking-tight">Rapports</h1>
-                {user?.permissions.includes('reports.create') && (
-                    <Button onClick={() => navigate("/reports/new")}>
-                        <Plus className="mr-2 h-4 w-4" /> Nouveau rapport
+                <div className="flex gap-2">
+                    <Button variant="outline" onClick={() => navigate("/pdf-v2")}>
+                        <FileType className="mr-2 h-4 w-4" /> PDF V2 Practice
                     </Button>
-                )}
+                    {user?.permissions.includes('reports.create') && (
+                        <Button onClick={() => navigate("/reports/new")}>
+                            <Plus className="mr-2 h-4 w-4" /> Nouveau rapport
+                        </Button>
+                    )}
+                </div>
             </div>
 
             <div className="flex items-center gap-2">

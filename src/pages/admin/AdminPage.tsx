@@ -30,15 +30,18 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuthStore } from "@/features/auth/AuthStore";
-import { UserPlus, Edit, Key, FileDown, Archive, Loader2, Database } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { AccountAssignmentPDF } from "@/components/pdf/AccountAssignmentPDF";
 import { generateBackup } from "@/utils/backupSystem";
 import { renderAndCapture } from "@/utils/pdfGenerator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { templatesService } from "@/features/reports/templatesService";
-import type { DocumentTemplate, TemplateField } from "@/features/reports/templatesService";
-import { Plus, Trash2, FileJson, Settings2, Users, PlusCircle, Eye, EyeOff, Gavel } from "lucide-react";
+import type { DocumentTemplate, TemplateField, BlockType, TemplateBlock } from "@/features/reports/templatesService";
+import {
+    UserPlus, Edit, Key, FileDown, Archive, Loader2, Database,
+    Plus, Trash2, FileJson, Settings2, Users, PlusCircle,
+    Eye, EyeOff, Gavel, Car, Image, ShieldAlert
+} from "lucide-react";
 import JSZip from "jszip";
 import { DynamicReportPDF } from "../reports/DynamicReportPDF";
 import { PenalCodeManager } from "./components/PenalCodeManager";
@@ -835,9 +838,10 @@ function TemplateBuilder({ template, onSave, onCancel }: { template?: DocumentTe
     const [category, setCategory] = useState(template?.category || "Report");
     const [minClearance, setMinClearance] = useState(template?.min_clearance?.toString() || "1");
     const [fields, setFields] = useState<TemplateField[]>(template?.schema || []);
+    const [blocks, setBlocks] = useState<TemplateBlock[]>(template?.layout_settings?.blocks || []);
 
     // Layout settings
-    const [layoutType, setLayoutType] = useState<'report' | 'card' | 'arrest_warrant' | 'badge'>(template?.layout_settings?.layout_type || 'report');
+    const [layoutType, setLayoutType] = useState<'report' | 'card' | 'arrest_warrant' | 'badge' | 'custom_v2'>(template?.layout_settings?.layout_type || 'report');
     const [headerTitle, setHeaderTitle] = useState(template?.layout_settings?.header_title || "");
     const [headerSubtitle, setHeaderSubtitle] = useState(template?.layout_settings?.header_subtitle || "");
     const [showLogo, setShowLogo] = useState(template?.layout_settings?.show_logo ?? true);
@@ -868,8 +872,9 @@ function TemplateBuilder({ template, onSave, onCancel }: { template?: DocumentTe
 
     const handleSave = async () => {
         if (!name) return alert("Le nom du template est obligatoire.");
-        if (fields.length === 0) return alert("Ajoutez au moins un champ.");
+        if (fields.length === 0 && blocks.length === 0) return alert("Ajoutez au moins un bloc ou un champ.");
         if (fields.some(f => !f.label)) return alert("Tous les champs doivent avoir un libellé.");
+        if (blocks.some(b => b.type === 'fields' && b.fields?.some(f => !f.label))) return alert("Tous les champs dans vos blocs doivent avoir un libellé.");
 
         setSaving(true);
         try {
@@ -887,7 +892,8 @@ function TemplateBuilder({ template, onSave, onCancel }: { template?: DocumentTe
                     show_logo: showLogo,
                     footer_text: footerText || undefined,
                     theme_color: themeColor,
-                    static_content: staticContent || undefined
+                    static_content: staticContent || undefined,
+                    blocks: blocks // Include the new V2 blocks
                 }
             };
 
@@ -941,6 +947,52 @@ function TemplateBuilder({ template, onSave, onCancel }: { template?: DocumentTe
                         </div>
                     </div>
 
+                    {/* Champs du Formulaire (Schema) */}
+                    <div className="border-t pt-6 space-y-4">
+                        <div className="flex justify-between items-center">
+                            <h3 className="text-lg font-bold flex items-center gap-2">
+                                <Database className="h-5 w-5 text-primary" /> Champs du Formulaire
+                            </h3>
+                            <Button onClick={addField} size="sm" className="gap-2">
+                                <Plus className="h-4 w-4" /> Ajouter un champ
+                            </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground italic">Ces champs définissent les données que l'agent devra remplir lors de la rédaction du rapport.</p>
+
+                        <div className="grid grid-cols-1 gap-3">
+                            {fields.map((field) => (
+                                <div key={field.id} className="flex gap-4 p-4 bg-muted/10 rounded-lg border group relative">
+                                    <div className="flex-1 space-y-2">
+                                        <Label>Libellé du champ</Label>
+                                        <Input
+                                            value={field.label}
+                                            onChange={(e) => updateField(field.id, { label: e.target.value })}
+                                            placeholder="ex: Propriétaire du véhicule"
+                                        />
+                                    </div>
+                                    <div className="w-40 space-y-2">
+                                        <Label>Type</Label>
+                                        <Select value={field.type} onValueChange={(val: any) => updateField(field.id, { type: val })}>
+                                            <SelectTrigger><SelectValue /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="text">Texte Court</SelectItem>
+                                                <SelectItem value="textarea">Texte Long</SelectItem>
+                                                <SelectItem value="number">Nombre</SelectItem>
+                                                <SelectItem value="date">Date</SelectItem>
+                                                <SelectItem value="boolean">Oui/Non</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="flex flex-col justify-end pb-1">
+                                        <Button variant="ghost" size="icon" onClick={() => removeField(field.id)} className="text-destructive opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
                     <div className="border-t pt-6">
                         <h3 className="text-lg font-bold flex items-center gap-2 mb-4">
                             <Settings2 className="h-5 w-5 text-primary" /> Mise en Page du PDF
@@ -952,6 +1004,7 @@ function TemplateBuilder({ template, onSave, onCancel }: { template?: DocumentTe
                                     <SelectTrigger><SelectValue /></SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="report">Rapport Standard (A4)</SelectItem>
+                                        <SelectItem value="custom_v2">Toolbox V2 (Recommandé)</SelectItem>
                                         <SelectItem value="arrest_warrant">Mandat / Arrestation</SelectItem>
                                         <SelectItem value="card">Fiche Compacte</SelectItem>
                                         <SelectItem value="badge">Badge d'Identité</SelectItem>
@@ -1041,48 +1094,211 @@ function TemplateBuilder({ template, onSave, onCancel }: { template?: DocumentTe
                         </div>
                     </div>
 
-                    <div className="border-t pt-6 space-y-4">
+                    {/* --- TOOLBOX V2 --- */}
+                    <div className="border-t pt-6 space-y-6">
                         <div className="flex items-center justify-between">
-                            <h3 className="text-lg font-bold flex items-center gap-2">
-                                <Database className="h-5 w-5 text-primary" /> Champs du Document
+                            <h3 className="text-xl font-black flex items-center gap-2 text-primary">
+                                <Settings2 className="h-6 w-6" /> Structure du Document (Toolbox V2)
                             </h3>
-                            <Button type="button" variant="outline" size="sm" onClick={addField} className="border-primary/50 text-primary hover:bg-primary/5">
-                                <PlusCircle className="mr-2 h-4 w-4" /> Ajouter un champ
-                            </Button>
                         </div>
 
-                        <div className="space-y-3">
-                            {fields.map((field) => (
-                                <div key={field.id} className="group relative flex gap-3 items-end p-4 border rounded-xl bg-white shadow-sm hover:border-primary/30 transition-all">
-                                    <div className="flex-1 space-y-2">
-                                        <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Libellé du champ</Label>
-                                        <Input value={field.label} onChange={(e) => updateField(field.id, { label: e.target.value })} placeholder="ex: Couleur du véhicule" className="border-transparent bg-muted/30 focus:border-primary/20" />
+                        <div className="grid grid-cols-4 gap-2 bg-gray-100 p-2 rounded-lg border border-dashed border-gray-300">
+                            {[
+                                { type: 'header', label: 'En-tête', icon: <PlusCircle className="h-4 w-4" /> },
+                                { type: 'classification', label: 'Classification', icon: <ShieldAlert className="h-4 w-4" /> },
+                                { type: 'warning', label: 'Avertissement', icon: <Gavel className="h-4 w-4" /> },
+                                { type: 'personnel', label: 'Case Personnel', icon: <Users className="h-4 w-4" /> },
+                                { type: 'suspect', label: 'Case Suspect', icon: <PlusCircle className="h-4 w-4" /> },
+                                { type: 'vehicle', label: 'Détails Véhicule', icon: <Car className="h-4 w-4" /> },
+                                { type: 'evidence', label: 'Preuves / Galerie', icon: <Image className="h-4 w-4" /> },
+                                { type: 'narrative', label: 'Zone Texte', icon: <Edit className="h-4 w-4" /> },
+                                { type: 'fields', label: 'Champs Libres', icon: <Database className="h-4 w-4" /> },
+                                { type: 'signature', label: 'Signature', icon: <Edit className="h-4 w-4" /> },
+                                { type: 'spacer', label: 'Espace', icon: <PlusCircle className="h-4 w-4" /> },
+                            ].map(btn => (
+                                <Button
+                                    key={btn.type}
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-16 flex-col gap-1 text-[10px] bg-white text-slate-900 hover:bg-primary/5 hover:border-primary/50 transition-all font-bold uppercase border-gray-200"
+                                    onClick={() => {
+                                        const newBlock: TemplateBlock = {
+                                            id: Math.random().toString(36).substr(2, 9),
+                                            type: btn.type as BlockType,
+                                            title: btn.label,
+                                            config: {},
+                                            fields: btn.type === 'fields' ? [] : undefined
+                                        };
+                                        setBlocks([...blocks, newBlock]);
+                                    }}
+                                >
+                                    {btn.icon}
+                                    {btn.label}
+                                </Button>
+                            ))}
+                        </div>
+
+                        <div className="space-y-4">
+                            {blocks.map((block, index) => (
+                                <div key={block.id} className="border-2 border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden group">
+                                    <div className="bg-gray-50 px-4 py-2 border-b flex justify-between items-center bg-gradient-to-r from-gray-50 to-white">
+                                        <div className="flex items-center gap-3">
+                                            <Badge className="bg-primary">{index + 1}</Badge>
+                                            <span className="font-black uppercase text-xs tracking-wider">{block.title || block.type}</span>
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => setBlocks(blocks.filter(b => b.id !== block.id))}>
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
                                     </div>
-                                    <div className="w-48 space-y-2">
-                                        <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Type de donnée</Label>
-                                        <Select value={field.type} onValueChange={(val: any) => updateField(field.id, { type: val })}>
-                                            <SelectTrigger className="bg-muted/30 border-transparent"><SelectValue /></SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="text">Texte Court</SelectItem>
-                                                <SelectItem value="textarea">Description Longue</SelectItem>
-                                                <SelectItem value="number">Valeur Numérique</SelectItem>
-                                                <SelectItem value="date">Date</SelectItem>
-                                                <SelectItem value="boolean">Case à cocher</SelectItem>
-                                            </SelectContent>
-                                        </Select>
+
+                                    <div className="p-4 space-y-4">
+                                        {/* Configuration spécifique au type de bloc */}
+                                        {block.type === 'classification' && (
+                                            <div className="grid grid-cols-1 gap-2">
+                                                <Label className="text-[10px] font-bold uppercase text-slate-800">Niveau de Classification par défaut</Label>
+                                                <Select
+                                                    value={block.config.level || 'CONFIDENTIAL'}
+                                                    onValueChange={val => {
+                                                        const newBlocks = [...blocks];
+                                                        newBlocks[index].config.level = val;
+                                                        setBlocks(newBlocks);
+                                                    }}
+                                                >
+                                                    <SelectTrigger className="text-slate-900"><SelectValue /></SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="UNCLASSIFIED">UNCLASSIFIED (Vert)</SelectItem>
+                                                        <SelectItem value="CONFIDENTIAL">CONFIDENTIAL (Jaune)</SelectItem>
+                                                        <SelectItem value="RESTRICTED">RESTRICTED (Orange)</SelectItem>
+                                                        <SelectItem value="TOP SECRET">TOP SECRET (Rouge)</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                        )}
+
+                                        {block.type === 'warning' && (
+                                            <div className="grid grid-cols-1 gap-2">
+                                                <Label className="text-[10px] font-bold uppercase text-slate-800">Texte de l'avertissement</Label>
+                                                <Textarea
+                                                    placeholder="Laissez vide pour le texte par défaut (Espionnage Titre 18)..."
+                                                    value={block.config.text || ''}
+                                                    className="bg-slate-50 text-slate-900 border-gray-200 focus:bg-white transition-colors"
+                                                    onChange={e => {
+                                                        const newBlocks = [...blocks];
+                                                        newBlocks[index].config.text = e.target.value;
+                                                        setBlocks(newBlocks);
+                                                    }}
+                                                />
+                                            </div>
+                                        )}
+
+                                        {block.type === 'narrative' && (
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <Label className="text-[10px] font-bold uppercase text-slate-800">Titre du bloc</Label>
+                                                    <Input
+                                                        value={block.config.title || ''}
+                                                        className="bg-slate-50 text-slate-900 border-gray-200 focus:bg-white transition-colors"
+                                                        onChange={e => {
+                                                            const newBlocks = [...blocks];
+                                                            newBlocks[index].config.title = e.target.value;
+                                                            setBlocks(newBlocks);
+                                                        }}
+                                                        placeholder="ex: Détails des Faits"
+                                                    />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label className="text-[10px] font-bold uppercase text-slate-800">Variante</Label>
+                                                    <Select
+                                                        value={block.config.variant || 'standard'}
+                                                        onValueChange={val => {
+                                                            const newBlocks = [...blocks];
+                                                            newBlocks[index].config.variant = val;
+                                                            setBlocks(newBlocks);
+                                                        }}
+                                                    >
+                                                        <SelectTrigger className="bg-slate-50 text-slate-900 border-gray-200 focus:bg-white transition-colors"><SelectValue /></SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="standard">Standard</SelectItem>
+                                                            <SelectItem value="lined">Papier Ligné</SelectItem>
+                                                            <SelectItem value="boxed">Encadré</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {block.type === 'fields' && (
+                                            <div className="space-y-4">
+                                                <div className="flex justify-between items-center">
+                                                    <Label className="text-[10px] font-bold uppercase text-slate-800">Champs de données</Label>
+                                                    <Button size="sm" variant="outline" className="text-slate-900" onClick={() => {
+                                                        const newBlocks = [...blocks];
+                                                        newBlocks[index].fields = [...(newBlocks[index].fields || []), { id: Math.random().toString(36).substr(2, 9), label: '', type: 'text', required: false }];
+                                                        setBlocks(newBlocks);
+                                                    }}> + Ajouter champ</Button>
+                                                </div>
+                                                <div className="grid grid-cols-1 gap-2">
+                                                    {block.fields?.map((f, fIdx) => (
+                                                        <div key={f.id} className="flex gap-2 items-end bg-gray-50 p-2 rounded border text-slate-900">
+                                                            <div className="flex-1 space-y-1">
+                                                                <Label className="text-[9px] uppercase opacity-50 font-bold">Libellé</Label>
+                                                                <Input
+                                                                    className="h-8 text-xs bg-slate-50 text-slate-900 border-gray-200 focus:bg-white transition-colors"
+                                                                    value={f.label}
+                                                                    onChange={e => {
+                                                                        const newBlocks = [...blocks];
+                                                                        newBlocks[index].fields![fIdx].label = e.target.value;
+                                                                        setBlocks(newBlocks);
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                            <div className="w-32 space-y-1">
+                                                                <Label className="text-[9px] uppercase opacity-50 font-bold">Type</Label>
+                                                                <Select
+                                                                    value={f.type}
+                                                                    onValueChange={(val: any) => {
+                                                                        const newBlocks = [...blocks];
+                                                                        newBlocks[index].fields![fIdx].type = val;
+                                                                        setBlocks(newBlocks);
+                                                                    }}
+                                                                >
+                                                                    <SelectTrigger className="h-8 text-[10px] bg-slate-50 text-slate-900 border-gray-200 focus:bg-white transition-colors"><SelectValue /></SelectTrigger>
+                                                                    <SelectContent>
+                                                                        <SelectItem value="text">Texte</SelectItem>
+                                                                        <SelectItem value="number">Nombre</SelectItem>
+                                                                        <SelectItem value="date">Date</SelectItem>
+                                                                        <SelectItem value="boolean">Oui/Non</SelectItem>
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            </div>
+                                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => {
+                                                                const newBlocks = [...blocks];
+                                                                newBlocks[index].fields = newBlocks[index].fields!.filter(field => field.id !== f.id);
+                                                                setBlocks(newBlocks);
+                                                            }}> <Trash2 className="h-3 w-3" /> </Button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Help text for fixed blocks */}
+                                        {(['suspect', 'personnel', 'header', 'signature', 'vehicle', 'evidence'].includes(block.type)) && (
+                                            <p className="text-[10px] italic text-slate-600 bg-blue-50 p-2 rounded border border-blue-100">
+                                                Ce bloc utilise automatiquement le design officiel du NOOSE et récupère les informations liées au rapport.
+                                            </p>
+                                        )}
                                     </div>
-                                    <div className="flex items-center gap-2 pb-2 px-2">
-                                        <Checkbox id={`req-${field.id}`} checked={field.required} onCheckedChange={(val) => updateField(field.id, { required: !!val })} />
-                                        <Label htmlFor={`req-${field.id}`} className="text-xs font-medium cursor-pointer">Requis</Label>
-                                    </div>
-                                    <Button variant="ghost" size="icon" className="text-destructive opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => removeField(field.id)}>
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
                                 </div>
                             ))}
-                            {fields.length === 0 && (
-                                <div className="text-center py-10 border-2 border-dashed rounded-xl bg-muted/10 text-muted-foreground italic">
-                                    Aucun champ défini. Utilisez le bouton ci-dessus pour construire votre formulaire.
+
+                            {blocks.length === 0 && (
+                                <div className="text-center py-20 border-4 border-dashed rounded-3xl bg-gray-50 text-gray-400">
+                                    <PlusCircle className="h-12 w-12 mx-auto mb-4 opacity-20" />
+                                    <p className="font-black uppercase tracking-widest text-sm italic">Votre boîte à outils est vide</p>
+                                    <p className="text-xs">Utilisez les boutons ci-dessus pour construire votre format de document</p>
                                 </div>
                             )}
                         </div>
@@ -1123,7 +1339,8 @@ function TemplateBuilder({ template, onSave, onCancel }: { template?: DocumentTe
                                             show_logo: showLogo,
                                             footer_text: footerText,
                                             theme_color: themeColor,
-                                            static_content: staticContent
+                                            static_content: staticContent,
+                                            blocks: blocks
                                         }
                                     }}
                                     templateData={Object.fromEntries(fields.map(f => [f.id, `Exemple ${f.label}`]))}

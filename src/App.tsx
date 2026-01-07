@@ -16,6 +16,7 @@ import { VehicleList } from '@/pages/vehicles/VehicleList';
 import { WeaponList } from '@/pages/weapons/WeaponList';
 import { TeamsPage } from '@/pages/teams/TeamsPage';
 import { InboxPage } from '@/pages/teams/InboxPage';
+import { PDFV2Playground } from '@/pages/reports/PDFV2Playground';
 
 import { useEffect } from 'react';
 
@@ -53,6 +54,7 @@ function App() {
             <Route path="/teams" element={<TeamsPage />} />
             <Route path="/teams/inbox" element={<InboxPage />} />
             <Route path="/teams/:id" element={<TeamsPage />} />
+            <Route path="/pdf-v2" element={<PDFV2Playground />} />
           </Route>
         </Route>
 

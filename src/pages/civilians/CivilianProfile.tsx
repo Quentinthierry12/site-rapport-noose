@@ -112,8 +112,8 @@ export function CivilianProfile() {
         }
     };
 
-    if (loading) return <div className="p-8 text-center">Loading dossier...</div>;
-    if (!isNew && !civilian.id) return <div className="p-8 text-center">Civilian not found.</div>;
+    if (loading) return <div className="p-8 text-center">Chargement du dossier...</div>;
+    if (!isNew && !civilian.id) return <div className="p-8 text-center">Dossier civil non trouvé.</div>;
 
     return (
         <div className="space-y-6">
@@ -126,26 +126,26 @@ export function CivilianProfile() {
                         <h1 className="text-3xl font-bold tracking-tight">
                             {isNew ? 'New Civilian' : formData.full_name}
                         </h1>
-                        <p className="text-muted-foreground">Civilian Dossier</p>
+                        <p className="text-muted-foreground">Dossier civil</p>
                     </div>
                 </div>
                 <div className="flex gap-2">
                     {isEditing ? (
                         <>
                             <Button variant="ghost" onClick={() => !isNew && setIsEditing(false)}>
-                                <X className="mr-2 h-4 w-4" /> Cancel
+                                <X className="mr-2 h-4 w-4" /> Annuler
                             </Button>
                             <Button onClick={handleSave}>
-                                <Save className="mr-2 h-4 w-4" /> Save Record
+                                <Save className="mr-2 h-4 w-4" /> Enregistrer le dossier
                             </Button>
                         </>
                     ) : (
                         <>
                             <Button variant="outline" onClick={() => setShowExportDialog(true)}>
-                                <Printer className="mr-2 h-4 w-4" /> Export PDF
+                                <Printer className="mr-2 h-4 w-4" /> Export vers PDF
                             </Button>
                             <Button onClick={() => setIsEditing(true)}>
-                                <Edit2 className="mr-2 h-4 w-4" /> Edit Dossier
+                                <Edit2 className="mr-2 h-4 w-4" /> Modifier le dossier
                             </Button>
                         </>
                     )}
@@ -172,12 +172,12 @@ export function CivilianProfile() {
                         )}
                         <div>
                             <h3 className="font-semibold text-lg">{formData.full_name}</h3>
-                            <p className="text-sm text-muted-foreground">DOB: {formData.dob || 'Unknown'}</p>
+                            <p className="text-sm text-muted-foreground">Date de naissance: {formData.dob || 'Unknown'}</p>
                         </div>
 
                         <div className="w-full pt-4 border-t space-y-3 text-left text-sm">
                             <div className="space-y-1">
-                                <Label className="text-xs text-muted-foreground">Full Name</Label>
+                                <Label className="text-xs text-muted-foreground">Nom Complet</Label>
                                 {isEditing ? (
                                     <Input value={formData.full_name || ''} onChange={e => setFormData({ ...formData, full_name: e.target.value })} />
                                 ) : (
@@ -185,7 +185,7 @@ export function CivilianProfile() {
                                 )}
                             </div>
                             <div className="space-y-1">
-                                <Label className="text-xs text-muted-foreground">Date of Birth</Label>
+                                <Label className="text-xs text-muted-foreground">Date de naissance</Label>
                                 {isEditing ? (
                                     <Input value={formData.dob || ''} onChange={e => setFormData({ ...formData, dob: e.target.value })} placeholder="YYYY-MM-DD" />
                                 ) : (
@@ -193,7 +193,7 @@ export function CivilianProfile() {
                                 )}
                             </div>
                             <div className="space-y-1">
-                                <Label className="text-xs text-muted-foreground">Gender</Label>
+                                <Label className="text-xs text-muted-foreground">Genre</Label>
                                 {isEditing ? (
                                     <Input value={formData.gender || ''} onChange={e => setFormData({ ...formData, gender: e.target.value })} />
                                 ) : (
@@ -201,7 +201,7 @@ export function CivilianProfile() {
                                 )}
                             </div>
                             <div className="space-y-1">
-                                <Label className="text-xs text-muted-foreground">Race</Label>
+                                <Label className="text-xs text-muted-foreground">ethnicité</Label>
                                 {isEditing ? (
                                     <Input value={formData.race || ''} onChange={e => setFormData({ ...formData, race: e.target.value })} />
                                 ) : (

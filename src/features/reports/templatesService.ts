@@ -8,15 +8,26 @@ export interface TemplateField {
     options?: string[]; // Pour le type 'select'
 }
 
+export type BlockType = 'header' | 'warning' | 'personnel' | 'suspect' | 'narrative' | 'fields' | 'signature' | 'footer' | 'spacer' | 'vehicle' | 'evidence' | 'classification';
+
+export interface TemplateBlock {
+    id: string;
+    type: BlockType;
+    title?: string; // Libellé de la section
+    config: Record<string, any>;
+    fields?: TemplateField[]; // Uniquement pour le type 'fields'
+}
+
 export interface TemplateLayoutSettings {
-    layout_type: 'report' | 'card' | 'arrest_warrant' | 'badge';
+    layout_type: 'report' | 'card' | 'arrest_warrant' | 'badge' | 'custom_v2';
     header_title?: string;
     header_subtitle?: string;
     show_logo: boolean;
     footer_text?: string;
     theme_color?: string; // ex: #1e3a8a
-    static_content?: string; // Bloc de texte fixe au milieu
+    static_content?: string;
     static_sections?: { title: string; content: string }[];
+    blocks?: TemplateBlock[]; // Nouveau système Toolbox V2
 }
 
 export interface DocumentTemplate {

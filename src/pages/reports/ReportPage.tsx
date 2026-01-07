@@ -260,7 +260,7 @@ export function ReportPage() {
     };
 
     if (loading) {
-        return <div className="p-8 text-center">Loading report...</div>;
+        return <div className="p-8 text-center">Chargement du rapport...</div>;
     }
 
     const canEdit = isNew
@@ -323,18 +323,18 @@ export function ReportPage() {
                         {!isNew && (
                             <>
                                 <Button variant="outline" onClick={() => setRedactionDialogOpen(true)}>
-                                    <Shield className="mr-2 h-4 w-4" /> Manage Redactions
+                                    <Shield className="mr-2 h-4 w-4" /> Gerer les classifications
                                 </Button>
                                 <Button variant="outline" onClick={handlePrint}>
-                                    <FileDown className="mr-2 h-4 w-4" /> Export PDF
+                                    <FileDown className="mr-2 h-4 w-4" /> Exporter en PDF
                                 </Button>
                                 <Button variant="outline" onClick={handleExportJSON}>
-                                    <FileJson className="mr-2 h-4 w-4" /> Export JSON
+                                    <FileJson className="mr-2 h-4 w-4" /> Exporter en JSON
                                 </Button>
                             </>
                         )}
                         <Button onClick={handleSave} disabled={!canEdit}>
-                            <Save className="mr-2 h-4 w-4" /> Save Report
+                            <Save className="mr-2 h-4 w-4" /> Enregistrer le rapport
                         </Button>
                     </div>
                 </div>
@@ -342,18 +342,18 @@ export function ReportPage() {
                 <div className="grid grid-cols-3 gap-6">
                     <div className="col-span-2 space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="title">Report Title</Label>
+                            <Label htmlFor="title">Titre du rapport</Label>
                             <Input
                                 id="title"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
-                                placeholder="Enter report title"
+                                placeholder="Entrez le titre du rapport"
                                 disabled={!canEdit}
                             />
                         </div>
 
                         <div className="space-y-2">
-                            <Label>Content</Label>
+                            <Label>Contenu</Label>
                             <ReportEditor content={content} onChange={setContent} readOnly={!canEdit} />
                         </div>
 
@@ -479,7 +479,7 @@ export function ReportPage() {
                                     <SelectValue placeholder="Select status" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="En cours de Redaction">En cours de Redaction</SelectItem>
+                                    <SelectItem value="En cours de redaction">En cours de redaction</SelectItem>
                                     <SelectItem value="En Attente de validation">En Attente de validation</SelectItem>
                                     {(canValidate || status === 'Validé') && (
                                         <SelectItem value="Validé">Validé</SelectItem>
@@ -494,7 +494,7 @@ export function ReportPage() {
                                 <div className="flex items-center justify-between p-3 border rounded-md bg-muted/50">
                                     <div>
                                         <p className="font-medium text-sm">{suspect.full_name}</p>
-                                        <p className="text-xs text-muted-foreground">DOB: {suspect.dob || 'Unknown'}</p>
+                                        <p className="text-xs text-muted-foreground">Date de naissance: {suspect.dob || 'Unknown'}</p>
                                     </div>
                                     <Button variant="ghost" size="icon" onClick={handleRemoveSuspect} disabled={!canEdit}>
                                         <X className="h-4 w-4" />
@@ -513,7 +513,7 @@ export function ReportPage() {
                                     {searchQuery.length >= 2 && (
                                         <div className="absolute top-full left-0 right-0 z-10 bg-popover text-popover-foreground shadow-md rounded-md border mt-1 max-h-60 overflow-auto">
                                             {searchResults.length === 0 && !isSearching ? (
-                                                <div className="p-2 text-sm text-muted-foreground text-center">No civilians found.</div>
+                                                <div className="p-2 text-sm text-muted-foreground text-center">Aucun suspect trouvé.</div>
                                             ) : (
                                                 <div className="p-1">
                                                     {searchResults.map(result => (
@@ -537,14 +537,14 @@ export function ReportPage() {
                         {/* Team Sharing */}
                         {!isNew && (
                             <div className="space-y-2">
-                                <Label>Share with Teams</Label>
+                                <Label>Partager avec les equipes</Label>
                                 <TeamSelector
                                     selectedTeams={sharedTeams}
                                     onTeamsChange={setSharedTeams}
                                     userDivision={user?.permissions.includes('reports.create') ? undefined : user?.division}
                                 />
                                 <p className="text-xs text-muted-foreground">
-                                    Share this report with specific teams for collaboration.
+                                    Partagez ce rapport avec des equipes pour collaborer.
                                 </p>
                             </div>
                         )}
