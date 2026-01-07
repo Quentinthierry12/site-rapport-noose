@@ -446,15 +446,15 @@ export function ReportPage() {
                                 </SelectContent>
                             </Select>
                             <p className="text-xs text-muted-foreground">
-                                Higher classification restricts access to authorized personnel only.
+                                Plus grande classification restreint l'accès aux seuls personnels autorisés.
                             </p>
                         </div>
 
                         <div className="space-y-2">
-                            <Label>Document Template</Label>
+                            <Label>Template de document</Label>
                             <Select value={selectedTemplateId || "none"} onValueChange={handleTemplateChange} disabled={!canEdit}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select a template" />
+                                    <SelectValue placeholder="Selectionner un template" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="none">Aucun template (Libre)</SelectItem>
