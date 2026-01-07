@@ -216,44 +216,44 @@ export function CivilianProfile() {
                 <div className="md:col-span-3">
                     <Tabs defaultValue="info" className="w-full">
                         <TabsList className="grid w-full grid-cols-3">
-                            <TabsTrigger value="info">Personal Info</TabsTrigger>
-                            <TabsTrigger value="history">History & Records</TabsTrigger>
-                            <TabsTrigger value="assets">Assets</TabsTrigger>
+                            <TabsTrigger value="info">Informations personnelles</TabsTrigger>
+                            <TabsTrigger value="history">Historique & Enregistrements</TabsTrigger>
+                            <TabsTrigger value="assets">Actifs</TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="info" className="space-y-4 mt-4">
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Physical Description & Origin</CardTitle>
+                                    <CardTitle>Description physique et origine</CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-2">
-                                            <Label>Hair Color</Label>
+                                            <Label>Couleur des cheveux</Label>
                                             {isEditing ? (
                                                 <Input value={formData.hair_color || ''} onChange={e => setFormData({ ...formData, hair_color: e.target.value })} />
                                             ) : <p className="p-2 bg-muted/50 rounded">{formData.hair_color || 'N/A'}</p>}
                                         </div>
                                         <div className="space-y-2">
-                                            <Label>Eye Color</Label>
+                                            <Label>Couleur des yeux</Label>
                                             {isEditing ? (
                                                 <Input value={formData.eye_color || ''} onChange={e => setFormData({ ...formData, eye_color: e.target.value })} />
                                             ) : <p className="p-2 bg-muted/50 rounded">{formData.eye_color || 'N/A'}</p>}
                                         </div>
                                         <div className="space-y-2">
-                                            <Label>Height</Label>
+                                            <Label>Hauteur</Label>
                                             {isEditing ? (
                                                 <Input value={formData.height || ''} onChange={e => setFormData({ ...formData, height: e.target.value })} placeholder="e.g. 6'1" />
                                             ) : <p className="p-2 bg-muted/50 rounded">{formData.height || 'N/A'}</p>}
                                         </div>
                                         <div className="space-y-2">
-                                            <Label>Weight</Label>
+                                            <Label>Poids</Label>
                                             {isEditing ? (
                                                 <Input value={formData.weight || ''} onChange={e => setFormData({ ...formData, weight: e.target.value })} placeholder="e.g. 180 lbs" />
                                             ) : <p className="p-2 bg-muted/50 rounded">{formData.weight || 'N/A'}</p>}
                                         </div>
                                         <div className="col-span-2 space-y-2">
-                                            <Label>Place of Birth</Label>
+                                            <Label>Lieu de naissance</Label>
                                             {isEditing ? (
                                                 <Input value={formData.pob || ''} onChange={e => setFormData({ ...formData, pob: e.target.value })} />
                                             ) : <p className="p-2 bg-muted/50 rounded">{formData.pob || 'N/A'}</p>}
@@ -264,11 +264,11 @@ export function CivilianProfile() {
 
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Contact & Address</CardTitle>
+                                    <CardTitle>Contact & Adresse</CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     <div className="space-y-2">
-                                        <Label>Address</Label>
+                                        <Label>Adresse</Label>
                                         {isEditing ? (
                                             <Input value={formData.address || ''} onChange={e => setFormData({ ...formData, address: e.target.value })} />
                                         ) : <p className="p-2 bg-muted/50 rounded">{formData.address || 'No fixed address'}</p>}
@@ -280,12 +280,12 @@ export function CivilianProfile() {
                         <TabsContent value="history" className="space-y-4 mt-4">
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Arrest Record</CardTitle>
-                                    <CardDescription>Criminal history and charges.</CardDescription>
+                                    <CardTitle>Enregistrement d'arrestation</CardTitle>
+                                    <CardDescription>Historique criminel et charges.</CardDescription>
                                 </CardHeader>
                                 <CardContent>
                                     {arrests.length === 0 ? (
-                                        <p className="text-sm text-muted-foreground">No arrest records found.</p>
+                                        <p className="text-sm text-muted-foreground">Aucun enregistrement d'arrestation trouvé.</p>
                                     ) : (
                                         <div className="space-y-4">
                                             {arrests.map(arrest => (
@@ -312,13 +312,13 @@ export function CivilianProfile() {
                         <TabsContent value="assets" className="space-y-4 mt-4">
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Registered Vehicles</CardTitle>
+                                    <CardTitle>Véhicules enregistrés</CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     {vehicles.length === 0 ? (
                                         <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
                                             <Car className="h-10 w-10 mb-2 opacity-20" />
-                                            <p>No vehicles registered.</p>
+                                            <p>Aucun véhicule enregistré.</p>
                                         </div>
                                     ) : (
                                         <div className="space-y-4">
@@ -344,13 +344,13 @@ export function CivilianProfile() {
                             </Card>
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Registered Weapons</CardTitle>
+                                    <CardTitle>Armes enregistrées</CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     {weapons.length === 0 ? (
                                         <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
                                             <Shield className="h-10 w-10 mb-2 opacity-20" />
-                                            <p>No weapons registered.</p>
+                                            <p>Aucune arme enregistrée.</p>
                                         </div>
                                     ) : (
                                         <div className="space-y-4">
@@ -383,9 +383,9 @@ export function CivilianProfile() {
             <Dialog open={showExportDialog} onOpenChange={setShowExportDialog}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Export Options</DialogTitle>
+                        <DialogTitle>Options d'exportation</DialogTitle>
                         <DialogDescription>
-                            Select the information you want to include in the PDF dossier.
+                            Sélectionnez les informations que vous souhaitez inclure dans le dossier PDF.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
@@ -395,7 +395,7 @@ export function CivilianProfile() {
                                 checked={exportOptions.arrests}
                                 onCheckedChange={(c) => setExportOptions(prev => ({ ...prev, arrests: !!c }))}
                             />
-                            <Label htmlFor="inc-arrests">Include Arrest History</Label>
+                            <Label htmlFor="inc-arrests">Historique d'arrestation</Label>
                         </div>
                         <div className="flex items-center space-x-2">
                             <Checkbox
@@ -403,7 +403,7 @@ export function CivilianProfile() {
                                 checked={exportOptions.investigations}
                                 onCheckedChange={(c) => setExportOptions(prev => ({ ...prev, investigations: !!c }))}
                             />
-                            <Label htmlFor="inc-inv">Include Investigations</Label>
+                            <Label htmlFor="inc-inv">Investigations</Label>
                         </div>
                         <div className="flex items-center space-x-2">
                             <Checkbox
@@ -411,12 +411,12 @@ export function CivilianProfile() {
                                 checked={exportOptions.vehicles}
                                 onCheckedChange={(c) => setExportOptions(prev => ({ ...prev, vehicles: !!c }))}
                             />
-                            <Label htmlFor="inc-veh">Include Vehicles & Weapons</Label>
+                            <Label htmlFor="inc-veh">Véhicules & Armes</Label>
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setShowExportDialog(false)}>Cancel</Button>
-                        <Button onClick={handlePrint}>Generate PDF</Button>
+                        <Button variant="outline" onClick={() => setShowExportDialog(false)}>Annuler</Button>
+                        <Button onClick={handlePrint}>Générer PDF</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
