@@ -2,7 +2,6 @@ import { forwardRef } from 'react';
 import { type DocumentTemplate, type TemplateField } from '@/features/reports/templatesService';
 import { type Report } from '@/features/reports/reportsService';
 import { type User } from '@/features/auth/AuthStore';
-import { Users, Car, Image as ImageIcon } from 'lucide-react';
 import { PDFStamp, type SpecialtyKey } from '@/components/pdf/PDFStamp';
 
 interface DynamicReportPDFProps {
