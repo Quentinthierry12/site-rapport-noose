@@ -2,6 +2,8 @@ import { forwardRef } from 'react';
 import { type Civilian } from '@/features/civilians/civiliansService';
 import { type Arrest } from '@/features/arrests/arrestsService';
 import { type Investigation } from '@/features/investigations/investigationsService';
+import { PDFStamp, type SpecialtyKey } from '@/components/pdf/PDFStamp';
+import { type User } from '@/features/auth/AuthStore';
 
 interface SuspectPDFProps {
     suspect: Civilian;
@@ -11,6 +13,8 @@ interface SuspectPDFProps {
     includeInvestigations?: boolean;
     includeVehicles?: boolean;
     preview?: boolean;
+    author?: User | null;
+    overrideSpecialty?: SpecialtyKey;
 }
 
 export const SuspectPDF = forwardRef<HTMLDivElement, SuspectPDFProps>(({
@@ -20,7 +24,9 @@ export const SuspectPDF = forwardRef<HTMLDivElement, SuspectPDFProps>(({
     includeArrests = true,
     includeInvestigations = true,
     includeVehicles = true,
-    preview = false
+    preview = false,
+    author = null,
+    overrideSpecialty
 }, ref) => {
     return (
         <div ref={ref} className={`${preview ? '' : 'hidden'} print:block p-8 max-w-[210mm] mx-auto font-serif`} style={{ backgroundColor: '#ffffff', color: '#000000' }}>
@@ -225,6 +231,14 @@ export const SuspectPDF = forwardRef<HTMLDivElement, SuspectPDFProps>(({
                     )}
                 </div>
             )}
+            {/* Footer / Official Seal */}
+            <div className="mt-auto pt-8 flex justify-end">
+                <PDFStamp
+                    author={author as any}
+                    specialty={overrideSpecialty || (author as any)?.division?.toLowerCase() as SpecialtyKey}
+                    date={new Date().toLocaleDateString('fr-FR')}
+                />
+            </div>
         </div>
     );
 });

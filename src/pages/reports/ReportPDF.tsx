@@ -2,16 +2,18 @@ import { forwardRef } from 'react';
 import { type Report } from '@/features/reports/reportsService';
 import { type User } from '@/features/auth/AuthStore';
 import { type Civilian } from '@/features/civilians/civiliansService';
+import { PDFStamp, type SpecialtyKey } from '@/components/pdf/PDFStamp';
 
 interface ReportPDFProps {
     report: Report;
     author?: User | null;
     suspect?: Civilian | null;
     redactedFields?: string[]; // Fields to redact
+    overrideSpecialty?: SpecialtyKey;
     preview?: boolean;
 }
 
-export const ReportPDF = forwardRef<HTMLDivElement, ReportPDFProps>(({ report, author, suspect, redactedFields = [], preview = false }, ref) => {
+export const ReportPDF = forwardRef<HTMLDivElement, ReportPDFProps>(({ report, author, suspect, redactedFields = [], overrideSpecialty, preview = false }, ref) => {
     // Helper function to check if a field should be redacted
     const isRedacted = (fieldName: string) => redactedFields.includes(fieldName);
 
@@ -135,9 +137,18 @@ export const ReportPDF = forwardRef<HTMLDivElement, ReportPDFProps>(({ report, a
             </div>
 
             {/* Footer */}
-            <div className="mt-auto pt-8 border-t" style={{ borderColor: '#000000' }}>
-                <p className="font-bold">Cordialement,</p>
-                <p className="mt-8">{author?.username || 'Officer Signature'}</p>
+            <div className="mt-auto pt-8 border-t flex flex-col items-end" style={{ borderColor: '#000000' }}>
+                <div className="w-full">
+                    <p className="font-bold">Cordialement,</p>
+                    <p className="mt-8 mb-4">{author?.username || 'Officer Signature'}</p>
+                </div>
+
+                {/* NOOSE Official Stamp */}
+                <PDFStamp
+                    author={author as any}
+                    specialty={overrideSpecialty || (author as any)?.division?.toLowerCase() as SpecialtyKey}
+                    date={new Date(report.created_at).toLocaleDateString('fr-FR')}
+                />
             </div>
         </div>
     );

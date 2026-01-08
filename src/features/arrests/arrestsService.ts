@@ -10,6 +10,8 @@ export interface Arrest {
     officer?: {
         username: string;
         rank: string;
+        matricule: string;
+        division: string;
     };
     date_of_arrest: string;
     location: string;
@@ -23,7 +25,7 @@ export const arrestsService = {
     async getAll() {
         const { data, error } = await supabase
             .from('arrests')
-            .select('*, officer:noose_user(username, rank)')
+            .select('*, officer:noose_user(username, rank, matricule, division)')
             .order('created_at', { ascending: false });
 
         if (error) throw error;
@@ -33,7 +35,7 @@ export const arrestsService = {
     async getById(id: string) {
         const { data, error } = await supabase
             .from('arrests')
-            .select('*, officer:noose_user(username, rank)')
+            .select('*, officer:noose_user(username, rank, matricule, division)')
             .eq('id', id)
             .single();
 
@@ -76,7 +78,7 @@ export const arrestsService = {
     async getByCivilianId(civilianId: string) {
         const { data, error } = await supabase
             .from('arrests')
-            .select('*, officer:noose_user(username, rank)')
+            .select('*, officer:noose_user(username, rank, matricule, division)')
             .eq('civilian_id', civilianId)
             .order('created_at', { ascending: false });
 

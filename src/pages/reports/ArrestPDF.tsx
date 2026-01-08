@@ -1,14 +1,16 @@
 import { forwardRef } from 'react';
 import { type Arrest } from '@/features/arrests/arrestsService';
 import { type Civilian } from '@/features/civilians/civiliansService';
+import { PDFStamp, type SpecialtyKey } from '@/components/pdf/PDFStamp';
 
 interface ArrestPDFProps {
     arrest: Arrest;
     suspect?: Civilian;
     preview?: boolean;
+    overrideSpecialty?: SpecialtyKey;
 }
 
-export const ArrestPDF = forwardRef<HTMLDivElement, ArrestPDFProps>(({ arrest, suspect, preview = false }, ref) => {
+export const ArrestPDF = forwardRef<HTMLDivElement, ArrestPDFProps>(({ arrest, suspect, preview = false, overrideSpecialty }, ref) => {
     return (
         <div ref={ref} className={`${preview ? '' : 'hidden'} print:block p-8 max-w-[210mm] mx-auto font-serif`} style={{ backgroundColor: '#ffffff', color: '#000000' }}>
             {/* Header */}
@@ -119,10 +121,17 @@ export const ArrestPDF = forwardRef<HTMLDivElement, ArrestPDFProps>(({ arrest, s
             {/* Footer */}
             <div className="mt-auto pt-8 border-t" style={{ borderColor: '#000000' }}>
                 <div className="flex justify-between items-end">
-                    <div>
+                    <div className="flex flex-col items-end">
                         <p className="font-bold text-sm mb-8">Signature de l'Officier</p>
                         <div className="border-b border-black w-48" style={{ borderColor: '#000000' }}></div>
-                        <p className="text-xs mt-1">{arrest.officer?.username || 'Officer Signature'}</p>
+                        <p className="text-xs mt-1 mb-4">{arrest.officer?.username || 'Officer Signature'}</p>
+
+                        {/* NOOSE Official Stamp */}
+                        <PDFStamp
+                            author={arrest.officer as any}
+                            specialty={overrideSpecialty || (arrest.officer as any)?.division?.toLowerCase() as SpecialtyKey}
+                            date={new Date(arrest.date_of_arrest).toLocaleDateString('fr-FR')}
+                        />
                     </div>
                     <div>
                         <p className="font-bold text-sm mb-8">Signature du Suspect (Refus possible)</p>

@@ -1,4 +1,6 @@
 import { forwardRef } from 'react';
+import { type User } from '@/features/auth/AuthStore';
+import { PDFStamp, type SpecialtyKey } from '@/components/pdf/PDFStamp';
 
 // Define strict interfaces for the sections to ensure type safety
 export interface CustomReportConfig {
@@ -37,10 +39,12 @@ export interface CustomReportConfig {
 
 interface CustomReportPDFProps {
     config: CustomReportConfig;
+    author?: User | null;
     preview?: boolean;
+    overrideSpecialty?: SpecialtyKey;
 }
 
-export const CustomReportPDF = forwardRef<HTMLDivElement, CustomReportPDFProps>(({ config, preview = false }, ref) => {
+export const CustomReportPDF = forwardRef<HTMLDivElement, CustomReportPDFProps>(({ config, author, preview = false, overrideSpecialty }, ref) => {
 
     const defaultWarningText = `
         <div style="font-weight: bold; text-decoration: underline; margin-bottom: 2px; font-size: 10px;">AVERTISSEMENT DE SÉCURITÉ</div>
@@ -227,6 +231,13 @@ export const CustomReportPDF = forwardRef<HTMLDivElement, CustomReportPDFProps>(
                             <p className="text-[9px] font-black uppercase">{config.signature || 'AGENT NAME'}</p>
                             <p className="text-[7px] text-gray-400 font-bold uppercase tracking-tighter">Verified Field Agent - NOOSE Intelligence</p>
                         </div>
+
+                        {/* NOOSE Official Stamp */}
+                        <PDFStamp
+                            author={author as any}
+                            specialty={overrideSpecialty || (author as any)?.division?.toLowerCase() as SpecialtyKey}
+                            date={config.date ? new Date(config.date).toLocaleDateString('fr-FR') : new Date().toLocaleDateString('fr-FR')}
+                        />
                     </div>
                 </div>
 

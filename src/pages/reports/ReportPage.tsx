@@ -18,6 +18,9 @@ import { RedactionEditor } from '@/components/redaction/RedactionEditor';
 import { VersionSelector } from '@/components/redaction/VersionSelector';
 import { templatesService, type DocumentTemplate, type TemplateField } from '@/features/reports/templatesService';
 import { DynamicReportPDF } from './DynamicReportPDF';
+import { teamsService, type Team } from '@/features/teams/teamsService';
+import { type SpecialtyKey } from '@/components/pdf/PDFStamp';
+import { PDFExportDialog } from '@/components/pdf/PDFExportDialog';
 
 
 export function ReportPage() {
@@ -54,6 +57,11 @@ export function ReportPage() {
     const [selectedTemplate, setSelectedTemplate] = useState<DocumentTemplate | null>(null);
     const [templateSchema, setTemplateSchema] = useState<TemplateField[]>([]);
     const [templateData, setTemplateData] = useState<Record<string, any>>({});
+
+    // Stamp Specialty State
+    const [userTeams, setUserTeams] = useState<Team[]>([]);
+    const [selectedSpecialty, setSelectedSpecialty] = useState<SpecialtyKey | undefined>(undefined);
+    const [exportDialogOpen, setExportDialogOpen] = useState(false);
 
     useEffect(() => {
         if (!isNew && id) {
@@ -130,7 +138,10 @@ export function ReportPage() {
     // Fetch Available Templates
     useEffect(() => {
         templatesService.getAll().then(setTemplates).catch(console.error);
-    }, []);
+        if (user?.id) {
+            teamsService.getUserTeams(user.id).then(setUserTeams).catch(console.error);
+        }
+    }, [user?.id]);
 
     const handleTemplateChange = async (templateId: string) => {
         if (templateId === "none") {
@@ -292,6 +303,7 @@ export function ReportPage() {
                         templateData={templateData}
                         author={user}
                         redactedFields={redactedFields}
+                        overrideSpecialty={selectedSpecialty}
                     />
                 ) : (
                     <ReportPDF
@@ -299,6 +311,7 @@ export function ReportPage() {
                         author={user}
                         suspect={suspect}
                         redactedFields={redactedFields}
+                        overrideSpecialty={selectedSpecialty}
                     />
                 )}
             </div>
@@ -325,7 +338,7 @@ export function ReportPage() {
                                 <Button variant="outline" onClick={() => setRedactionDialogOpen(true)}>
                                     <Shield className="mr-2 h-4 w-4" /> Gerer les classifications
                                 </Button>
-                                <Button variant="outline" onClick={handlePrint}>
+                                <Button variant="outline" onClick={() => setExportDialogOpen(true)}>
                                     <FileDown className="mr-2 h-4 w-4" /> Exporter en PDF
                                 </Button>
                                 <Button variant="outline" onClick={handleExportJSON}>
@@ -573,6 +586,16 @@ export function ReportPage() {
                     // Refresh version selector
                     setRedactedFields([]);
                 }}
+            />
+
+            {/* PDF Export Dialog */}
+            <PDFExportDialog
+                open={exportDialogOpen}
+                onOpenChange={setExportDialogOpen}
+                userTeams={userTeams}
+                selectedSpecialty={selectedSpecialty}
+                onSpecialtyChange={setSelectedSpecialty}
+                onConfirm={handlePrint}
             />
         </>
     );

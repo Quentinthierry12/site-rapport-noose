@@ -16,6 +16,9 @@ import jsPDF from "jspdf";
 import { ArrestPDF } from "@/pages/reports/ArrestPDF";
 import { ReportEditor } from "@/components/editor/ReportEditor";
 import { reportsService } from "@/features/reports/reportsService";
+import { teamsService, type Team } from "@/features/teams/teamsService";
+import { type SpecialtyKey } from "@/components/pdf/PDFStamp";
+import { PDFExportDialog } from "@/components/pdf/PDFExportDialog";
 
 export function ArrestPage() {
     const { id } = useParams();
@@ -34,6 +37,9 @@ export function ArrestPage() {
     const [exporting, setExporting] = useState(false);
     const [factsDetails, setFactsDetails] = useState("");
     const [reportId, setReportId] = useState<string | undefined>(undefined);
+    const [userTeams, setUserTeams] = useState<Team[]>([]);
+    const [selectedSpecialty, setSelectedSpecialty] = useState<SpecialtyKey | undefined>(undefined);
+    const [exportDialogOpen, setExportDialogOpen] = useState(false);
 
     // Keep track of the full civilian object for PDF export if needed
     const [selectedCivilian, setSelectedCivilian] = useState<Civilian | undefined>(undefined);
@@ -78,7 +84,10 @@ export function ArrestPage() {
             }
             fetchArrest();
         }
-    }, [id, isNew]);
+        if (user?.id) {
+            teamsService.getUserTeams(user.id).then(setUserTeams).catch(console.error);
+        }
+    }, [id, isNew, user?.id]);
 
     const handleSave = async () => {
         try {
@@ -156,8 +165,13 @@ export function ArrestPage() {
                 status,
                 mugshot_url: mugshotUrl,
                 arresting_officer_id: user?.id || "",
-                officer: { username: user?.username || "Unknown", rank: user?.rank || "" },
-                date_of_arrest: new Date().toISOString(), // Use existing date if available in real app, but state missing it. using now.
+                officer: {
+                    username: user?.username || "Unknown",
+                    rank: user?.rank || "",
+                    matricule: user?.matricule || "",
+                    division: user?.division || ""
+                },
+                date_of_arrest: new Date().toISOString(),
                 created_at: new Date().toISOString()
             };
 
@@ -166,6 +180,7 @@ export function ArrestPage() {
                     arrest={currentArrest}
                     suspect={selectedCivilian}
                     preview={true}
+                    overrideSpecialty={selectedSpecialty}
                 />
             );
 
@@ -228,10 +243,12 @@ export function ArrestPage() {
                 </div>
                 <div className="flex gap-2">
                     {!isNew && (
-                        <Button variant="outline" onClick={handleExportPDF} disabled={exporting}>
-                            <FileDown className="mr-2 h-4 w-4" />
-                            {exporting ? 'Generating...' : 'Export PDF'}
-                        </Button>
+                        <>
+                            <Button variant="outline" onClick={() => setExportDialogOpen(true)} disabled={exporting}>
+                                <FileDown className="mr-2 h-4 w-4" />
+                                {exporting ? 'Generating...' : 'Export PDF'}
+                            </Button>
+                        </>
                     )}
                     <Button onClick={handleSave}>
                         <Save className="mr-2 h-4 w-4" /> Save Record
@@ -331,6 +348,16 @@ export function ArrestPage() {
                     </div>
                 </div>
             </div>
+
+            {/* PDF Export Dialog */}
+            <PDFExportDialog
+                open={exportDialogOpen}
+                onOpenChange={setExportDialogOpen}
+                userTeams={userTeams}
+                selectedSpecialty={selectedSpecialty}
+                onSpecialtyChange={setSelectedSpecialty}
+                onConfirm={handleExportPDF}
+            />
         </div>
     );
 }
